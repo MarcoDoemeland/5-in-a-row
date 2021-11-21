@@ -84,8 +84,8 @@ int main() {
 	FIAR::Game game ( board, player_1, player_2, printer );
 
 	//~ std::cout << typeid(player_1).name() << '\n';
-	std::cout << ( 7 & 1) << '\n';
-	return 0;
+	//~ std::cout << ( 7 & 1) << '\n';
+	//~ return 0;
 
 	//~ board.array[0][0] = 'x';
 	//~ board.array[4][7] = 'x';
