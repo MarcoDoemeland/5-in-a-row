@@ -7,21 +7,11 @@
 #include "Board.h"
 #include "Game.h"
 #include "Printer.h"
+#include "Defines.h"
 
 #include "Players/PlayerBase.h"
 #include "Players/PlayerHuman.h"
 #include "Players/PlayerRandom.h"
-
-
-
-// avoid object-like macros????
-//~ #define BOARD_SIZE_X 8
-//~ #define BOARD_SIZE_Y 15
-//~ #define DEFAULT_SYMBOL ' '
-
-constexpr int BOARD_SIZE_X { 8 };
-constexpr int BOARD_SIZE_Y { 15 };
-constexpr char DEFAULT_SYMBOL { ' ' };
 
 int main(int argc, char* argv[]) {
 	// call a function in another file
@@ -79,7 +69,7 @@ int main(int argc, char* argv[]) {
 
 
 	FIAR::Printer printer;
-	FIAR::Board board ( BOARD_SIZE_X, BOARD_SIZE_Y, DEFAULT_SYMBOL );
+    FIAR::Board board ( FIAR::BOARD_SIZE_X, FIAR::BOARD_SIZE_Y, FIAR::DEFAULT_SYMBOL );
 	FIAR::PlayerHuman player_1;
 	FIAR::PlayerRandom player_2;
 	FIAR::Game game ( board, player_1, player_2, printer );
