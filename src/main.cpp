@@ -92,12 +92,12 @@ int main() {
 	//~ board.array[1][1] = 'x';
 
 	//~ std::cout << board.add_symbol( 3, 10, 'x' ) << std::endl;;
-	std::cout << board.add_symbol( 4, 5, 'x' ) << "\n";
-	std::cout << board.add_symbol( 5, 4, 'x' ) << "\n";
-	std::cout << board.add_symbol( 6, 3, 'x' ) << "\n";
-	std::cout << board.add_symbol( 7, 2, 'x' ) << "\n";
-	std::cout << board.add_symbol( 8, 1, 'x' ) << "\n";
-	std::cout << board.add_symbol( 4, 10, 'o' ) << "\n";
+    std::cout << board.add_symbol( 4, 5, 'x' ) << '\n';
+    std::cout << board.add_symbol( 5, 4, 'x' ) << '\n';
+    std::cout << board.add_symbol( 6, 3, 'x' ) << '\n';
+    std::cout << board.add_symbol( 7, 2, 'x' ) << '\n';
+    std::cout << board.add_symbol( 8, 1, 'x' ) << '\n';
+    std::cout << board.add_symbol( 4, 10, 'o' ) << '\n';
 	//~ std::cout << board << "\n";
 
 	//~ return 0;
