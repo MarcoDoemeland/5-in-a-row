@@ -1,5 +1,7 @@
 #include "Board.h"
 
+// HALLO, ICH BIN EIN KOMMENTAR!!
+
 namespace FIAR
 {
 	Board::Board(	unsigned int _size_x,
