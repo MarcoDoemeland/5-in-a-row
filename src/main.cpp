@@ -23,11 +23,12 @@ constexpr int BOARD_SIZE_X { 8 };
 constexpr int BOARD_SIZE_Y { 15 };
 constexpr char DEFAULT_SYMBOL { ' ' };
 
-int main() {
+int main(int argc, char* argv[]) {
 	// call a function in another file
 	//~ myPrintHelloMake();
 
 
+    for(int i{ 0 }; i < argc; ++i) std::cout << argv[i] << '\n';
 
 	//~ std::string a {"huhu"};
 
@@ -106,7 +107,7 @@ int main() {
 	if (board.add_symbol( 3, 5, 'x' ))
 	{
 		std::cout << "huhuhu" << std::endl;
-	};
+    }
 
 
 	//~ auto array { board.get_array() };
@@ -121,7 +122,7 @@ int main() {
 
 	for (auto i: board.find_winning_sequences() )
 	{
-		std::cout << i[0] << " " << i[1] << " " << i[2] << std::endl;
+        std::cout << i[0] << ' ' << i[1] << ' ' << i[2] << std::endl;
 	}
 
 
