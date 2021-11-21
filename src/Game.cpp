@@ -24,7 +24,8 @@ namespace FIAR
 		  player_2 (player_2_),
 		  printer (printer_)
 	{
-		std::cout << "huhuh" << '\n';
+		//~ std::cout << "huhuh" << '\n';
+		;
 	}
 }
 
