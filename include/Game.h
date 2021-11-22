@@ -31,11 +31,15 @@ namespace FIAR
 			Game();
 
 			// constructor
-			Game( FIAR::Board board_,
-			      FIAR::PlayerBase player_1_,
-			      FIAR::PlayerBase player_2_,
-			      FIAR::Printer printer_
-			    );
+            //~ Game( FIAR::Board board_,
+            //~       FIAR::PlayerBase player_1_,
+            //~       FIAR::PlayerBase player_2_,
+            //~       FIAR::Printer printer_
+            //~     );
+            // Using pointers here, Game is not the owner of those objects.
+            // Using objects called by value would create copies
+            // No need to use scope resolution FIAR::, since we actually are in FIAR
+            Game(Board* board, PlayerBase* player1, PlayerBase* player2, Printer* printer);
 
 			// constructor for square board
 			//~ Board( unsigned int const size );
@@ -58,10 +62,11 @@ namespace FIAR
 		private:
 
 			// size of board
-			FIAR::Board board;
-			FIAR::PlayerBase player_1;
-			FIAR::PlayerBase player_2;
-			FIAR::Printer printer;
+            // Using pointers here, Game is not the owner of those objects
+            Board* m_board{ nullptr };
+            PlayerBase* m_player1{ nullptr };
+            PlayerBase* m_player2{ nullptr };
+            Printer* m_printer{ nullptr };
 			//~ unsigned int size_y;
 			//~ char default_symbol;
 

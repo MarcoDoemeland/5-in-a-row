@@ -69,10 +69,10 @@ int main(int argc, char* argv[]) {
 
 
 	FIAR::Printer printer;
-    FIAR::Board board ( FIAR::BOARD_SIZE_X, FIAR::BOARD_SIZE_Y, FIAR::DEFAULT_SYMBOL );
+    FIAR::Board board ( FIAR::g_boardSizeX, FIAR::g_boardSizeY, FIAR::g_defaultSymbol );
 	FIAR::PlayerHuman player_1;
 	FIAR::PlayerRandom player_2;
-	FIAR::Game game ( board, player_1, player_2, printer );
+    FIAR::Game game ( &board, &player_1, &player_2, &printer );
 
 	//~ std::cout << typeid(player_1).name() << '\n';
 	//~ std::cout << ( 7 & 1) << '\n';
@@ -110,9 +110,8 @@ int main(int argc, char* argv[]) {
 
 
 
-	for (auto i: board.find_winning_sequences() )
-	{
-        std::cout << i[0] << ' ' << i[1] << ' ' << i[2] << std::endl;
+	for (auto i: board.find_winning_sequences() ){
+        std::cout << i.m_x << ' ' << i.m_y << ' ' << i.m_dir << std::endl;
 	}
 
 

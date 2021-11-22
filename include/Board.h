@@ -5,9 +5,6 @@
 // ...
 //
 
-// Dumm, duemmer, am duemmsten
-
-
 #ifndef __FIAR_BOARD_H__
 #define __FIAR_BOARD_H__
 
@@ -15,52 +12,56 @@
 #include <vector>
 #include <iostream>
 
+#include "Defines.h"
 
 namespace FIAR
 {
 	class Board
-	{
-		public:
-			// standard constructor
-			Board();
+    {
+    public:
+        // standard constructor
+        Board() = default;
 
-			// constructor for square board
-			Board( unsigned int _size_x,
-				   unsigned int _size_y,
-				   char _default_symbol
-				 );
+        // constructor for square board
+        Board(std::size_t sizeX, std::size_t sizeY, char defaultSymbol = g_defaultSymbol);
 
-			// constructor for square board
-			//~ Board( unsigned int const size );
+        // No copy constructor
+        Board(const Board& board) = delete;
+        // No assignement operator
+        Board& operator=(const Board& b) = delete;
 
-			// destructor
-			//~ ~Printer( void );
 
-			// ...
-			auto add_symbol(	int pos_x,
-								int pos_y,
-								char symbol
-							) -> bool;
+        // constructor for square board
+        //~ Board( unsigned int const size );
 
-			// ...
-			auto get_array( void ) -> std::vector<std::vector<char>>;
+        // destructor
+        //~ ~Printer( void );
 
-			// ...
-			auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
+        // ...
+        auto add_symbol(std::size_t posX, std::size_t posY, char symbol) -> bool;
 
-		private:
+        // ...
+        auto get_array( void ) -> std::vector<std::vector<char>>;// TODO: Probably pretty expensive
 
-			// size of board
-			unsigned int size_x;
-			unsigned int size_y;
-			char default_symbol;
+        // ...
+        //~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
+        auto find_winning_sequences( void ) -> std::vector<WinningSequence>;
 
-			// actual board representation
-			std::vector<std::vector<char>> array;
-			//~ std::vector<char> array;
+    protected:
+        // Building the board, taking care of the dimensions
+        void buildBoard();
+
+    private:
+        // size of board
+        std::size_t m_sizeX{ g_boardSizeX };
+        std::size_t m_sizeY{ g_boardSizeY };
+        // Char to be displayed at each position by default
+        char m_defaultSymbol{ g_defaultSymbol };// The global variable should be enough, right?
+
+        // actual board representation
+        std::vector<std::vector<char>> m_array{ };// Maybe the previous one was better?
+        //~ std::vector<char> array;
 	};
-}
-
-
+}// End namespace FIAR
 
 #endif
