@@ -22,5 +22,5 @@ Game::Game(Board* board, PlayerBase* player1, PlayerBase* player2, Printer* prin
 
 }
 
-}
+}// End namespace FIAR
 

@@ -63,6 +63,15 @@ namespace FIAR
 
 			// size of board
             // Using pointers here, Game is not the owner of those objects
+            // Joseph: Shouldn't Game be the owner of both players and board?
+            // It would make more sense to me because then you instanciate Game and Printer
+            // in main, and then game is taking care of the whole game mechanic.
+            // In the other hand I'm not sure about the printer class, I think it's better if
+            // it stays external like you did and can be asked to print with the help of a
+            // function calling the board by const ref. Probably more secure and flexible.
+            // A Printer instance could also be built only when needed. Or even more brutal,
+            // kick the printer away and write the corresponding function in a << overload
+            // taking const Board& as argument. Oh boy, so many options!!
             Board* m_board{ nullptr };
             PlayerBase* m_player1{ nullptr };
             PlayerBase* m_player2{ nullptr };
