@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
 
 	FIAR::Printer printer;
     FIAR::Board board ( FIAR::g_boardSizeX, FIAR::g_boardSizeY, FIAR::g_defaultSymbol );
-	FIAR::PlayerHuman player_1;
-	FIAR::PlayerRandom player_2;
+    FIAR::PlayerHuman player_1{ &board, "Guy XY" };
+    FIAR::PlayerRandom player_2{ &board };
     FIAR::Game game ( &board, &player_1, &player_2, &printer );
 
 	//~ std::cout << typeid(player_1).name() << '\n';
