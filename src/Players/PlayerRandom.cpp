@@ -1,15 +1,21 @@
-#include <iostream>
+#include "PlayerRandom.h"
 
-#include "Players/PlayerRandom.h"
-//~ #include "Board.h"
+namespace FIAR{
 
-namespace FIAR
-{
-	//~ PlayerBase::PlayerBase( int i )
-	//~ {
-		//~ std::cout << i << '\n';
-	//~ }
-
-
+// Constructor
+PlayerRandom::PlayerRandom(Board* board)
+    : PlayerBase( board, "RandomBot" ){
 
 }
+
+// Destructor
+PlayerRandom::~PlayerRandom(){
+
+}
+
+// Asking the player to make an action
+void PlayerRandom::doAction(){
+
+}
+
+}// End namespace FIAR

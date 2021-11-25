@@ -5,59 +5,62 @@
 // ...
 //
 
-
-
-
 #ifndef __FIAR_PLAYERRANDOM_H__
 #define __FIAR_PLAYERRANDOM_H__
 
-
-//~ #include <vector>
-
+// Custom classes and defines
+#include "Defines.h"
 #include "PlayerBase.h"
+#include "Board.h"
 
+namespace FIAR{
 
-namespace FIAR
+class PlayerRandom : public PlayerBase
 {
-	class PlayerRandom : public PlayerBase
-	{
-		public:
-			// standard constructor
-			PlayerRandom() {};
+public:
+    // Constructor
+    PlayerRandom(Board* board);
 
-			// constructor
-			//~ PlayerBase( int i );
+    // Destructor
+    virtual ~PlayerRandom();
 
-			// constructor for square board
-			//~ Board( unsigned int const size );
+    // Asking the player to make an action
+    // This function has to be overriden
+    void doAction() override;
 
-			// destructor
-			//~ ~Printer( void );
+    // constructor
+    //~ PlayerBase( int i );
 
-			// ...
-			//~ auto add_symbol(	int const pos_x,
-								//~ int const pos_y,
-								//~ char const symbol
-							//~ ) -> bool;
+    // constructor for square board
+    //~ Board( unsigned int const size );
 
-			// ...
-			//~ auto get_array( void ) -> std::vector<std::vector<char>>;
+    // destructor
+    //~ ~Printer( void );
 
-			// ...
-			//~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
+    // ...
+    //~ auto add_symbol(	int const pos_x,
+                        //~ int const pos_y,
+                        //~ char const symbol
+                    //~ ) -> bool;
 
-		private:
+    // ...
+    //~ auto get_array( void ) -> std::vector<std::vector<char>>;
 
-			// size of board
-			//~ FIAR::Board board;
-			//~ unsigned int size_y;
-			//~ char default_symbol;
+    // ...
+    //~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
 
-			// actual board representation
-			//~ std::vector<std::vector<char>> array;
-			//~ std::vector<char> array;
-	};
-}
+private:
 
+    // size of board
+    //~ FIAR::Board board;
+    //~ unsigned int size_y;
+    //~ char default_symbol;
+
+    // actual board representation
+    //~ std::vector<std::vector<char>> array;
+    //~ std::vector<char> array;
+};
+
+}// End namespace FIAR
 
 #endif
