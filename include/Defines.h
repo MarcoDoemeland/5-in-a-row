@@ -6,6 +6,16 @@
 namespace FIAR
 {
 
+// List of player IDs available (1 per usable class), to be used for the input control
+enum PlayerId{
+    player_human,
+    player_random,
+    player_marco,
+    player_joseph,
+    // Max count
+    player_max
+};
+
 enum Direction{
     dir_horizontal,
     dir_diagonal,
