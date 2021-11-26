@@ -5,41 +5,45 @@
 // ...
 //
 
-
-
-
 #ifndef __FIAR_GAME_H__
 #define __FIAR_GAME_H__
 
 
 #include <vector>
 
+#include "Defines.h"
 #include "Board.h"
-#include "Printer.h"
 #include "Players/PlayerBase.h"
+#include "Printer.h"
 
 
-namespace FIAR
+namespace FIAR{
+
+class Game
 {
+public:
+    // standard constructor
+    Game();
 
+    // constructor
+    //~ Game( FIAR::Board board_,
+    //~       FIAR::PlayerBase player_1_,
+    //~       FIAR::PlayerBase player_2_,
+    //~       FIAR::Printer printer_
+    //~     );
+    // Using pointers here, Game is not the owner of those objects.
+    // Using objects called by value would create copies
+    // No need to use scope resolution FIAR::, since we actually are in FIAR
+    //Game(Board* board, PlayerBase* player1, PlayerBase* player2, Printer* printer);
 
+    // Destructor
+    ~Game();
 
-	class Game
-	{
-		public:
-			// standard constructor
-			Game();
+    // Starting a gaming session
+    void start();
 
-			// constructor
-            //~ Game( FIAR::Board board_,
-            //~       FIAR::PlayerBase player_1_,
-            //~       FIAR::PlayerBase player_2_,
-            //~       FIAR::Printer printer_
-            //~     );
-            // Using pointers here, Game is not the owner of those objects.
-            // Using objects called by value would create copies
-            // No need to use scope resolution FIAR::, since we actually are in FIAR
-            Game(Board* board, PlayerBase* player1, PlayerBase* player2, Printer* printer);
+    // A winner was found, returning a pointer
+    PlayerBase* winnerFound() const;
 
 			// constructor for square board
 			//~ Board( unsigned int const size );
@@ -59,6 +63,7 @@ namespace FIAR
 			// ...
 			//~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
 
+
 		private:
 
 			// size of board
@@ -72,19 +77,38 @@ namespace FIAR
             // A Printer instance could also be built only when needed. Or even more brutal,
             // kick the printer away and write the corresponding function in a << overload
             // taking const Board& as argument. Oh boy, so many options!!
-            Board* m_board{ nullptr };
-            PlayerBase* m_player1{ nullptr };
-            PlayerBase* m_player2{ nullptr };
-            Printer* m_printer{ nullptr };
+            Board* m_boardPtr{ nullptr };
+            PlayerBase* m_player1Ptr{ nullptr };
+            PlayerBase* m_player2Ptr{ nullptr };
+            Printer* m_printerPtr{ nullptr };
 			//~ unsigned int size_y;
 			//~ char default_symbol;
 
 			// actual board representation
 			//~ std::vector<std::vector<char>> array;
-			//~ std::vector<char> array;
-	};
-}
+            //~ std::vector<char> array;
+protected:
+    // Defining the players
+    void definePlayer1();
+    void definePlayer2();
+    void definePlayer(const std::string& text, PlayerBase*& player);
 
+    // Telling which player should start the game. To be called only at start.
+    void defineCurrentPlayer();
+    // Swapping the current player. To be called in the end of each round.
+    void swapCurrentPlayer();
 
+private:
+    // Test members for the alternative strategy
+    // Board where the game is going to be played
+    Board m_board;
+    // Using pointers for the players, so we avoid slicing
+    PlayerBase* m_player1{ nullptr };
+    PlayerBase* m_player2{ nullptr };
+    // Player currently playing
+    PlayerBase* m_currentPlayer{ nullptr };
+};
+
+}// End namespace FIAR
 
 #endif
