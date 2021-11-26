@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "Defines.h"
+#include "Position.h"
 
 namespace FIAR{
 
@@ -40,6 +41,7 @@ public:
 
     // ...
     auto add_symbol(std::size_t posX, std::size_t posY, char symbol) -> bool;
+    bool add_symbol(const Position& pos, char symbol);
 
     // ...
     auto get_array( void ) -> std::vector<std::vector<char>>;// TODO: Probably pretty expensive

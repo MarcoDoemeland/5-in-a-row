@@ -91,7 +91,7 @@ protected:
     // Defining the players
     void definePlayer1();
     void definePlayer2();
-    void definePlayer(const std::string& text, PlayerBase*& player);
+    void definePlayer(const std::string& text, PlayerBase*& player, char playerSymbol);
 
     // Telling which player should start the game. To be called only at start.
     void defineCurrentPlayer();

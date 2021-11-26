@@ -12,7 +12,7 @@ namespace FIAR{
 class PlayerJoseph final : public PlayerBase{
 public:
     // Constructor
-    PlayerJoseph(Board* board);
+    PlayerJoseph(Board* board, char symbol);
     // Destructor
     virtual ~PlayerJoseph();
 

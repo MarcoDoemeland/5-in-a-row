@@ -6,6 +6,8 @@
 
 #include "Utilities.h"
 
+#include "Position.h"
+
 #include "Players/PlayerHuman.h"
 #include "Players/PlayerJoseph.h"
 #include "Players/PlayerRandom.h"
@@ -67,10 +69,11 @@ void Game::start(){
     while(!winnerFound() && cycleCount < m_board.area()){
         // Telling who is playing
         std::cout << *m_currentPlayer << " is playing: ";
+        std::cout.flush();
         // Actually playing
         m_currentPlayer->doAction();
         // Printing the board
-        //std::cout << m_board << '\n';
+        std::cout << m_board << '\n';
         // Swapping the current player
         swapCurrentPlayer();
         // Incrementing the cycle count
@@ -78,6 +81,12 @@ void Game::start(){
     }
     // No winner, pretty sad
     if(cycleCount >= m_board.area())  std::cout << "Nobody won.\n";
+
+
+
+    // This can be called by PlayerHuman to get an object "Position" from the terminal
+    //~ getInputFromUser<Position>("Enter a position: ");
+
 
 
     //~ std::cout << board.add_symbol( 3, 10, 'x' ) << std::endl;;
@@ -126,12 +135,12 @@ PlayerBase* Game::winnerFound() const{
 
 // Defining the players
 void Game::definePlayer1(){
-    definePlayer("first", m_player1);
+    definePlayer("first", m_player1, 'x');
 }
 void Game::definePlayer2(){
-    definePlayer("second", m_player2);
+    definePlayer("second", m_player2, 'o');
 }
-void Game::definePlayer(const std::string& text, PlayerBase*& player){
+void Game::definePlayer(const std::string& text, PlayerBase*& player, char playerSymbol){
     // Building a list containing all usable players (only by the first call)
     static const std::vector<int> s_playerIds{ player_human, player_random, player_joseph };
 
@@ -150,16 +159,16 @@ void Game::definePlayer(const std::string& text, PlayerBase*& player){
     // ... And building the player
     switch(playerId){
     case player_human:
-        player = new PlayerHuman(&m_board, getInputFromUser<std::string>("Enter the player's name: "));
+        player = new PlayerHuman(&m_board, getInputFromUser<std::string>("Enter the player's name: "), playerSymbol);
         break;
     case player_random:
-        player = new PlayerRandom(&m_board);
+        player = new PlayerRandom(&m_board, playerSymbol);
         break;
     case player_marco:
         player = nullptr;
         break;
     case player_joseph:
-        player = new PlayerJoseph(&m_board);
+        player = new PlayerJoseph(&m_board, playerSymbol);
         break;
     // Stupid, but allows getting the warning away.
     case player_max:

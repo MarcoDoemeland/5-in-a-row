@@ -3,8 +3,8 @@
 namespace FIAR{
 
 // Constructor
-PlayerRandom::PlayerRandom(Board* board)
-    : PlayerBase( board, "RandomBot" ){
+PlayerRandom::PlayerRandom(Board* board, char playerSymbol)
+    : PlayerBase( board, "RandomBot", playerSymbol ){
 
 }
 

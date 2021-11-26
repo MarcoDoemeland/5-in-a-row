@@ -26,7 +26,7 @@ class PlayerBase
 {
 public:
     // Constructor
-    PlayerBase(Board* board, const std::string& playerName);
+    PlayerBase(Board* board, const std::string& playerName, char playerSymbol);
 
     // constructor - to be removed? TODO
     //~ PlayerBase( int i = 0 );
@@ -42,6 +42,9 @@ public:
     std::string name() const;
     int winCount() const;
 
+    // Accessor to symbol
+    char symbol() const;
+
     // Incrementing the count of wins
     void incrementWinCount();
 
@@ -50,6 +53,8 @@ protected:
     Board* m_board{ nullptr };
     // Name of the player
     std::string m_name{ "" };
+    // Symbol to be used when playing
+    char m_symbol{ '\0' };
     // Count of wins
     int m_winCount{ 0 };
 

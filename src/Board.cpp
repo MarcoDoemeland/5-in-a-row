@@ -29,7 +29,9 @@ bool Board::add_symbol(std::size_t posX, std::size_t posY, char symbol){
     m_array[posX - 1][posY - 1] = symbol;
     return true;
 }
-
+bool Board::add_symbol(const Position& pos, char symbol){
+    return add_symbol(pos.x(), pos.y(), symbol);
+}
 // TODO: Probably pretty expensive: not quite my tempo
 std::vector<std::vector<char>> Board::get_array(){
     return m_array;

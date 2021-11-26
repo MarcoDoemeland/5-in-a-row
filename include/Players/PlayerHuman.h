@@ -23,7 +23,7 @@ class PlayerHuman : public PlayerBase
 {
 public:
     // Constructor
-    PlayerHuman(Board* board, const std::string& playerName);
+    PlayerHuman(Board* board, const std::string& playerName, char playerSymbol);
 
     // Destructor
     virtual ~PlayerHuman();

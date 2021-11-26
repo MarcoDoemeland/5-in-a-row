@@ -19,7 +19,7 @@ class PlayerRandom : public PlayerBase
 {
 public:
     // Constructor
-    PlayerRandom(Board* board);
+    PlayerRandom(Board* board, char playerSymbol);
 
     // Destructor
     virtual ~PlayerRandom();

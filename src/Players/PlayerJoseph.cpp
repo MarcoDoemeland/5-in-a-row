@@ -3,8 +3,8 @@
 namespace FIAR{
 
 // Constructor
-PlayerJoseph::PlayerJoseph(Board* board)
-    : PlayerBase( board, "JosephBot" ){
+PlayerJoseph::PlayerJoseph(Board* board, char symbol)
+    : PlayerBase( board, "JosephBot", symbol ){
 
 }
 
