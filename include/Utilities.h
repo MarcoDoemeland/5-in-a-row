@@ -22,6 +22,12 @@ T getInputFromUser(const std::string& msg);
 template<typename T>
 T getValidInputFromUser(const std::string& msg, const std::vector<T>& ref);
 
+// Getting a random value inside of the given limits
+int getRandomInt(int min, int max);
+
 }// End namespace FIAR
+
+// Location of the template functions
+#include "Utilities.inl"
 
 #endif // UTILITIES_H
