@@ -69,7 +69,6 @@ void Game::start(){
     while(!winnerFound() && cycleCount < m_board.area()){
         // Telling who is playing
         std::cout << *m_currentPlayer << " is playing: ";
-        std::cout.flush();
         // Actually playing
         m_currentPlayer->doAction();
         // Printing the board
@@ -84,27 +83,22 @@ void Game::start(){
 
 
 
-    // This can be called by PlayerHuman to get an object "Position" from the terminal
-    //~ getInputFromUser<Position>("Enter a position: ");
-
-
-
     //~ std::cout << board.add_symbol( 3, 10, 'x' ) << std::endl;;
-    std::cout << m_board.add_symbol( 4, 5, 'x' ) << '\n';
-    std::cout << m_board.add_symbol( 5, 4, 'x' ) << '\n';
-    std::cout << m_board.add_symbol( 6, 3, 'x' ) << '\n';
-    std::cout << m_board.add_symbol( 7, 2, 'x' ) << '\n';
-    std::cout << m_board.add_symbol( 8, 1, 'x' ) << '\n';
-    std::cout << m_board.add_symbol( 4, 10, 'o' ) << '\n';
+    //~ std::cout << m_board.add_symbol( 4, 5, 'x' ) << '\n';
+    //~ std::cout << m_board.add_symbol( 5, 4, 'x' ) << '\n';
+    //~ std::cout << m_board.add_symbol( 6, 3, 'x' ) << '\n';
+    //~ std::cout << m_board.add_symbol( 7, 2, 'x' ) << '\n';
+    //~ std::cout << m_board.add_symbol( 8, 1, 'x' ) << '\n';
+    //~ std::cout << m_board.add_symbol( 4, 10, 'o' ) << '\n';
     //~ std::cout << board << "\n";
 
     //~ return 0;
     //~ std::cout << board.add_symbol( 3, 5, 'x' ) << std::endl;
 
-    if (m_board.add_symbol( 3, 5, 'x' ))
-    {
-        std::cout << "huhuhu" << std::endl;
-    }
+    //~ if (m_board.add_symbol( 3, 5, 'x' ))
+    //~ {
+    //~     std::cout << "huhuhu" << std::endl;
+    //~ }
 
 
     //~ auto array { board.get_array() };
@@ -119,9 +113,9 @@ void Game::start(){
     std::cout << m_board << '\n';
 
 
-    for (auto i: m_board.find_winning_sequences() ){
-        std::cout << i.m_x << ' ' << i.m_y << ' ' << i.m_dir << std::endl;
-    }
+    //~ for (auto i: m_board.find_winning_sequences() ){
+    //~     std::cout << i.m_x << ' ' << i.m_y << ' ' << i.m_dir << ' ' << i.m_symbol << std::endl;
+    //~ }
 }
 // A winner was found, returning a pointer
 PlayerBase* Game::winnerFound() const{
@@ -129,7 +123,17 @@ PlayerBase* Game::winnerFound() const{
     // Looking for winning combination and returning the pointer to the player it belongs to
     // If no combination found returning nullptr
 
-
+    WinningSequence sequence;
+    if(m_board.getWinningSequence(sequence)){
+        if(sequence.m_symbol == m_player1->symbol()){
+            m_player1->incrementWinCount();
+            return m_player1;
+        }
+        else if(sequence.m_symbol == m_player2->symbol()){
+            m_player2->incrementWinCount();
+            return m_player2;
+        }
+    }
     return nullptr;
 }
 

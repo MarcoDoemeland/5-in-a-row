@@ -38,7 +38,7 @@ std::vector<std::vector<char>> Board::get_array(){
 }
 
 //std::vector<std::vector<int>> Board::find_winning_sequences( void ){
-std::vector<WinningSequence> Board::find_winning_sequences( void ){
+std::vector<WinningSequence> Board::find_winning_sequences( void ) const{
     std::vector<WinningSequence> found_sequences {};
     //~ std::vector< int > found_solution {};
 
@@ -50,7 +50,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ){
                     && m_array[i][j] == m_array[i][j+2]
                     && m_array[i][j] == m_array[i][j+3]
                     && m_array[i][j] == m_array[i][j+4]){
-                found_sequences.push_back( { i+1, j+1 , 0 } );
+                found_sequences.push_back( { i+1, j+1 , 0, m_array[i][j] } );
             }
         }
     }
@@ -63,7 +63,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ){
                     && m_array[i][j] == m_array[i+2][j+2]
                     && m_array[i][j] == m_array[i+3][j+3]
                     && m_array[i][j] == m_array[i+4][j+4]){
-                found_sequences.push_back( { i+1, j+1, 1} );
+                found_sequences.push_back( { i+1, j+1, 1, m_array[i][j]} );
             }
         }
     }
@@ -76,7 +76,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ){
                     && m_array[i][j] == m_array[i+2][j]
                     && m_array[i][j] == m_array[i+3][j]
                     && m_array[i][j] == m_array[i+4][j]){
-                found_sequences.push_back( {i+1, j+1, 2} );
+                found_sequences.push_back( {i+1, j+1, 2, m_array[i][j]} );
             }
         }
     }
@@ -89,12 +89,70 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ){
                     && m_array[i][j] == m_array[i+2][j-2]
                     && m_array[i][j] == m_array[i+3][j-3]
                     && m_array[i][j] == m_array[i+4][j-4]){
-                found_sequences.push_back( {i+1,j+1,3} );
+                found_sequences.push_back( {i+1, j+1, 3, m_array[i][j]} );
             }
         }
     }
 
     return found_sequences;
+}
+bool Board::getWinningSequence(WinningSequence& seq) const{
+    // test for horizontal sequences
+    for(std::size_t i{0}; i < m_sizeX; ++i){
+        for(std::size_t j {0}; j < m_sizeY - 4; ++j){
+            if(m_array[i][j] != m_defaultSymbol
+                    && m_array[i][j] == m_array[i][j+1]
+                    && m_array[i][j] == m_array[i][j+2]
+                    && m_array[i][j] == m_array[i][j+3]
+                    && m_array[i][j] == m_array[i][j+4]){
+                seq = { i+1, j+1 , 0, m_array[i][j] };
+                return true;
+            }
+        }
+    }
+
+    // test for diagonal sequences
+    for(std::size_t i{0}; i < m_sizeX - 4; ++i){
+        for(std::size_t j{0}; j < m_sizeY - 4; ++j){
+            if (m_array[i][j] != m_defaultSymbol
+                    && m_array[i][j] == m_array[i+1][j+1]
+                    && m_array[i][j] == m_array[i+2][j+2]
+                    && m_array[i][j] == m_array[i+3][j+3]
+                    && m_array[i][j] == m_array[i+4][j+4]){
+                seq = { i+1, j+1 , 0, m_array[i][j] };
+                return true;
+            }
+        }
+    }
+
+    // test for vertical sequences
+    for(std::size_t i{0}; i < m_sizeX - 4; ++i){
+        for(std::size_t j{0}; j < m_sizeY; ++j){
+            if(m_array[i][j] != m_defaultSymbol
+                    && m_array[i][j] == m_array[i+1][j]
+                    && m_array[i][j] == m_array[i+2][j]
+                    && m_array[i][j] == m_array[i+3][j]
+                    && m_array[i][j] == m_array[i+4][j]){
+                seq = {i+1, j+1, 2, m_array[i][j]};
+                return true;
+            }
+        }
+    }
+
+    // test for anti diagonal sequences
+    for(std::size_t i{0}; i < m_sizeX - 4; ++i){
+        for(std::size_t j{4}; j < m_sizeY; ++j){
+            if(m_array[i][j] != m_defaultSymbol
+                    && m_array[i][j] == m_array[i+1][j-1]
+                    && m_array[i][j] == m_array[i+2][j-2]
+                    && m_array[i][j] == m_array[i+3][j-3]
+                    && m_array[i][j] == m_array[i+4][j-4]){
+                seq = {i+1, j+1, 3, m_array[i][j]};
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 // Telling whether the board is valid

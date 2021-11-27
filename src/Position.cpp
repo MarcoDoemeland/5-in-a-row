@@ -40,7 +40,15 @@ std::ostream& operator<<(std::ostream& stream, const Position& pos){
 using strIter_t = std::string::iterator;
 std::istream& operator>>(std::istream& stream, Position& pos){
     std::string str;
-    std::getline(stream, str);
+
+    // Protection against empty strings. Sometimes, if cin >> was used before, it
+    // seems that endline chars still remain somewhere and the getline function gets
+    // called even if the user didn't enter anything. This acts as a protection
+    // against empty strings anyway.
+    while(str.size() <= 0) std::getline(stream, str);
+    // Placing the end char back into the string to simulate a standard cin >> call
+    stream.unget();
+
     // Looking for tokens
     strIter_t itBeg{ std::find(str.begin(), str.end(), '(') };
     strIter_t itEnd{ std::find(str.begin(), str.end(), ')') };

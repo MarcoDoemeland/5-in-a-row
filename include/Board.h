@@ -48,7 +48,8 @@ public:
 
     // ...
     //~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
-    auto find_winning_sequences( void ) -> std::vector<WinningSequence>;
+    auto find_winning_sequences( void ) const -> std::vector<WinningSequence>;
+    bool getWinningSequence(WinningSequence& seq) const;
 
     // Telling whether the board is valid
     bool isValid() const;

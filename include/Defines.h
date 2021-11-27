@@ -29,6 +29,7 @@ struct WinningSequence{
     std::size_t m_x;
     std::size_t m_y;
     int m_dir;
+    char m_symbol;
 };
 
 // avoid object-like macros????

@@ -8,7 +8,6 @@ namespace FIAR{
 // Getting an int code given from the user.
 template<typename T>
 T getInputFromUser(const std::string& msg){
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     T helper;
     std::cout << msg;
     std::cin >> helper;
@@ -16,8 +15,10 @@ T getInputFromUser(const std::string& msg){
         std::cout << "Invalid input.\n" << msg;
         // Clearing the error
         std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cin >> helper;
     }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return helper;
 }
 
@@ -34,8 +35,10 @@ T getValidInputFromUser(const std::string& msg, const std::vector<T>& ref){
         std::cout << "Invalid input.\n" << msg;
         // Clearing the error
         std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cin >> helper;
     }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return helper;
 }
 
