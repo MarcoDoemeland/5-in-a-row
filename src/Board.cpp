@@ -37,6 +37,31 @@ std::vector<std::vector<char>> Board::get_array(){
     return m_array;
 }
 
+// Get functions
+std::size_t Board::get_size_x() const{
+    return m_sizeX;
+}
+std::size_t Board::get_size_y() const{
+    return m_sizeY;
+}
+char Board::get_symbol(std::size_t posX, std::size_t posY, bool* ok) const{
+    // Cases where the coordinates are outside the limits
+    if (posX < 1 || posX > m_sizeX){
+        if(ok) *ok = false;
+        return m_defaultSymbol;
+    }
+    if (posY < 1 || posY > m_sizeY){
+        if(ok) *ok = false;
+        return m_defaultSymbol;
+    }
+    // Getting the symbol
+    if(ok) *ok = true;
+    return m_array[posX - 1][posY - 1];
+}
+char Board::get_symbol(const Position& pos, bool* ok) const{
+    return get_symbol(pos.x(), pos.y(), ok);
+}
+
 //std::vector<std::vector<int>> Board::find_winning_sequences( void ){
 std::vector<WinningSequence> Board::find_winning_sequences( void ) const{
     std::vector<WinningSequence> found_sequences {};
