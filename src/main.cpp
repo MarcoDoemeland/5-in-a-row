@@ -1,7 +1,7 @@
 #include <cassert>	// for assertions
 #include <cstdlib>	// for std::exit
 #include <iostream>
-#include <exception>
+#include <stdexcept>
 
 
 #include "Game.h"
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
         // It worked, then starting
         game.start();
     }
-    catch(const std::exception& exception){
+    catch(const std::runtime_error& exception){
         std::cerr << "Error: " << exception.what() << '\n';
         return 1;
     }

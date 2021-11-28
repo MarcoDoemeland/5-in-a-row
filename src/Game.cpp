@@ -1,7 +1,7 @@
 #include "Game.h"
 
 #include <iostream>
-#include <exception>// For std::exceptions, obviously :P
+#include <stdexcept>// For std::runtime_error
 #include <ctime>// For std::time, to used for seeding the random number generator
 
 #include "Utilities.h"
@@ -37,9 +37,9 @@ Game::Game()
     definePlayer1();
     definePlayer2();
     try{
-        if(!m_board.isValid()) throw std::exception("Board invalid.");
-        if(!m_player1) throw std::exception("First player define failed.");
-        if(!m_player2) throw std::exception("Second player define failed.");
+        if(!m_board.isValid()) throw std::runtime_error("Board invalid.");
+        if(!m_player1) throw std::runtime_error("First player define failed.");
+        if(!m_player2) throw std::runtime_error("Second player define failed.");
     }
     catch(...){
         if(m_player1) delete m_player1;
