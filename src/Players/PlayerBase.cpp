@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "PlayerBase.h"
+#include "Players/PlayerBase.h"
 //~ #include "Board.h"
 
 namespace FIAR
