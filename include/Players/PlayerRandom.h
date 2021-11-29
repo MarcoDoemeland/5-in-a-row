@@ -19,7 +19,7 @@ class PlayerRandom : public PlayerBase
 {
 public:
     // Constructor
-    PlayerRandom(Board* board, char playerSymbol);
+    PlayerRandom(Board* board, char symbol);
 
     // Destructor
     virtual ~PlayerRandom();
@@ -50,6 +50,10 @@ public:
     //~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
 
 private:
+
+    // Dimensions of the board
+    std::size_t m_boardW{ 0 };
+    std::size_t m_boardH{ 0 };
 
     // size of board
     //~ FIAR::Board board;

@@ -18,12 +18,36 @@ Board::Board(std::size_t sizeX, std::size_t sizeY, char defaultSymbol)
     buildBoard();
 }
 
+
 // TODO: using indexes starting with 1 could be pretty "dangerous" imo
-bool Board::add_symbol(std::size_t posX, std::size_t posY, char symbol){
+// check whether Tile is empty (returns true of empty)
+bool Board::checkTile(std::size_t posX, std::size_t posY){
     // Cases where the symbol can not be added
     if (posX < 1 || posX > m_sizeX) return false;
     if (posY < 1 || posY > m_sizeY) return false;
     if (m_array[posX - 1][posY - 1] != m_defaultSymbol) return false;
+
+    return true;
+}
+bool Board::checkTile(const Position& pos){
+    return checkTile(pos.x(), pos.y());
+}
+
+
+// TODO: using indexes starting with 1 could be pretty "dangerous" imo
+bool Board::add_symbol(std::size_t posX, std::size_t posY, char symbol){
+    //~ // Cases where the symbol can not be added
+    //~ if (posX < 1 || posX > m_sizeX) return false;
+    //~ if (posY < 1 || posY > m_sizeY) return false;
+    //~ if (m_array[posX - 1][posY - 1] != m_defaultSymbol) return false;
+
+    //~ // Adding the symbol
+    //~ m_array[posX - 1][posY - 1] = symbol;
+    //~ return true;
+
+	bool tileIsOccupied{ !checkTile(posX, posY) };
+
+	if (tileIsOccupied) return false;
 
     // Adding the symbol
     m_array[posX - 1][posY - 1] = symbol;

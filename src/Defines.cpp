@@ -13,7 +13,7 @@ namespace FIAR
 
 // Using g_ prefix for global variables
 // Using std::size_t for a better compatibility with std::vector indexes and sizes
-extern const std::size_t g_boardSizeX{ 8u };
+extern const std::size_t g_boardSizeX{ 15u };
 extern const std::size_t g_boardSizeY{ 15u };
 extern const char g_defaultSymbol{ ' ' };
 

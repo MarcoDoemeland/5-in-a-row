@@ -40,6 +40,10 @@ public:
     //~ ~Printer( void );
 
     // ...
+
+    bool checkTile(std::size_t posX, std::size_t posY);
+    bool checkTile(const Position& pos);
+
     auto add_symbol(std::size_t posX, std::size_t posY, char symbol) -> bool;
     bool add_symbol(const Position& pos, char symbol);
 
@@ -49,9 +53,9 @@ public:
     // Get functions
     std::size_t get_size_x() const;
     std::size_t get_size_y() const;
+
     char get_symbol(std::size_t posX, std::size_t posY, bool* ok = nullptr) const;
     char get_symbol(const Position& pos, bool* ok = nullptr) const;
-
     // ...
     //~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
     auto find_winning_sequences( void ) const -> std::vector<WinningSequence>;
