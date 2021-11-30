@@ -25,11 +25,18 @@ enum Direction{
     dir_maxCount
 };
 
+// States defining the content of a cell
+enum class Piece{
+    none,
+    player1,
+    player2
+};
+
 struct WinningSequence{
     std::size_t m_x;
     std::size_t m_y;
     int m_dir;
-    char m_symbol;
+    Piece m_piece;
 };
 
 // avoid object-like macros????
@@ -44,6 +51,8 @@ struct WinningSequence{
 extern const std::size_t g_boardSizeX;
 extern const std::size_t g_boardSizeY;
 extern const char g_defaultSymbol;
+extern const char g_player1Symbol;
+extern const char g_player2Symbol;
 
 }// End namespace FIAR
 

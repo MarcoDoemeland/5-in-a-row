@@ -6,17 +6,12 @@
 namespace FIAR
 {
 // Constructor
-PlayerBase::PlayerBase(Board* board, const std::string& playerName, char playerSymbol)
+PlayerBase::PlayerBase(const Board* board, const std::string& playerName, Piece piece)
     : m_board{ board }
     , m_name{ playerName }
-    , m_symbol{ playerSymbol }{
+    , m_piece{ piece }{
     std::cout << "Constructing player " << *this << '\n';
 }
-
-// constructor - to be removed? TODO
-//~ PlayerBase::PlayerBase( int i ){
-//~     std::cout << i << '\n';
-//~ }
 
 // Destructor
 PlayerBase::~PlayerBase(){
@@ -30,10 +25,13 @@ std::string PlayerBase::name() const{
 int PlayerBase::winCount() const{
     return m_winCount;
 }
-
-// Accessor to symbol
-char PlayerBase::symbol() const{
-    return m_symbol;
+// Accessor to the symbol
+//char PlayerBase::symbol() const{
+//    return m_symbol;
+//}
+// Accessor to the piece
+Piece PlayerBase::piece() const{
+    return m_piece;
 }
 
 // Incrementing the count of wins
@@ -43,7 +41,7 @@ void PlayerBase::incrementWinCount(){
 
 // Printing the player
 std::ostream& operator<<(std::ostream& stream, const PlayerBase& player){
-    stream << player.name() << " (symbol " << player.symbol() << ", " << player.winCount() << " wins)";
+    stream << player.name() << " (symbol " << player.piece() << ", " << player.winCount() << " wins)";
     return stream;
 }
 

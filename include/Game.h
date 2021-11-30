@@ -91,7 +91,7 @@ protected:
     // Defining the players
     void definePlayer1();
     void definePlayer2();
-    void definePlayer(const std::string& text, PlayerBase*& player, char playerSymbol);
+    void definePlayer(const std::string& text, PlayerBase*& player, Piece piece);
 
     // Telling which player should start the game. To be called only at start.
     void defineCurrentPlayer();
@@ -105,7 +105,7 @@ private:
     // Using pointers for the players, so we avoid slicing
     PlayerBase* m_player1{ nullptr };
     PlayerBase* m_player2{ nullptr };
-    // Player currently playing
+    // Player currently playing and his piece code
     PlayerBase* m_currentPlayer{ nullptr };
 };
 

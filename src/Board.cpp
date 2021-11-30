@@ -7,83 +7,86 @@
 
 namespace FIAR
 {
-Board::Board(std::size_t sizeX, std::size_t sizeY, char defaultSymbol)
+//~ Board::Board(std::size_t sizeX, std::size_t sizeY, char defaultSymbol)
+Board::Board(std::size_t sizeX, std::size_t sizeY)
     : m_sizeX{ sizeX }
-    , m_sizeY{ sizeY }
-    , m_defaultSymbol{ defaultSymbol }{
-    //~ array = std::vector<char>(size_y, 'a');
-    //array = std::vector<std::vector<char>>(size_x, std::vector<char>(size_y, default_symbol));
-
+    , m_sizeY{ sizeY }{
     // Building the board
     buildBoard();
 }
 
-
-// TODO: using indexes starting with 1 could be pretty "dangerous" imo
 // check whether Tile is empty (returns true of empty)
-bool Board::checkTile(std::size_t posX, std::size_t posY){
+bool Board::checkTile(std::size_t posX, std::size_t posY) const{
     // Cases where the symbol can not be added
     if (posX < 1 || posX > m_sizeX) return false;
     if (posY < 1 || posY > m_sizeY) return false;
-    if (m_array[posX - 1][posY - 1] != m_defaultSymbol) return false;
-
-    return true;
+    return (m_array[posX - 1][posY - 1] == Piece::none);
 }
-bool Board::checkTile(const Position& pos){
+bool Board::checkTile(const Position& pos) const{
     return checkTile(pos.x(), pos.y());
 }
 
-
-// TODO: using indexes starting with 1 could be pretty "dangerous" imo
-bool Board::add_symbol(std::size_t posX, std::size_t posY, char symbol){
-    //~ // Cases where the symbol can not be added
-    //~ if (posX < 1 || posX > m_sizeX) return false;
-    //~ if (posY < 1 || posY > m_sizeY) return false;
-    //~ if (m_array[posX - 1][posY - 1] != m_defaultSymbol) return false;
-
-    //~ // Adding the symbol
-    //~ m_array[posX - 1][posY - 1] = symbol;
-    //~ return true;
-
-	bool tileIsOccupied{ !checkTile(posX, posY) };
-
-	if (tileIsOccupied) return false;
-
-    // Adding the symbol
-    m_array[posX - 1][posY - 1] = symbol;
-    return true;
-}
-bool Board::add_symbol(const Position& pos, char symbol){
-    return add_symbol(pos.x(), pos.y(), symbol);
-}
-// TODO: Probably pretty expensive: not quite my tempo
-std::vector<std::vector<char>> Board::get_array(){
-    return m_array;
-}
-
-// Get functions
-std::size_t Board::get_size_x() const{
-    return m_sizeX;
-}
-std::size_t Board::get_size_y() const{
-    return m_sizeY;
-}
-char Board::get_symbol(std::size_t posX, std::size_t posY, bool* ok) const{
+// Telling whether or not a cell is containing Piece::none
+bool Board::isEmptyAt(std::size_t posX, std::size_t posY, bool* ok) const{
     // Cases where the coordinates are outside the limits
     if (posX < 1 || posX > m_sizeX){
         if(ok) *ok = false;
-        return m_defaultSymbol;
+        return false;
     }
     if (posY < 1 || posY > m_sizeY){
         if(ok) *ok = false;
-        return m_defaultSymbol;
+        return false;
+    }
+    // Getting the symbol
+    if(ok) *ok = true;
+    return (m_array[posX - 1][posY - 1] == Piece::none);
+}
+bool Board::isEmptyAt(const Position& pos, bool* ok) const{
+    return isEmptyAt(pos.x(), pos.y(), ok);
+}
+
+// TODO: using indexes starting with 1 could be pretty "dangerous" imo
+bool Board::addPiece(std::size_t posX, std::size_t posY, Piece piece){
+    // Cases where the symbol can not be added
+    if(!checkTile(posX, posY)) return false;
+    // Adding the symbol
+    m_array[posX - 1][posY - 1] = piece;
+    return true;
+}
+bool Board::addPiece(const Position& pos, Piece piece){
+    return addPiece(pos.x(), pos.y(), piece);
+}
+
+// Returning the piece contained at the given position
+Piece Board::getPiece(std::size_t posX, std::size_t posY, bool* ok) const{
+    // Cases where the coordinates are outside the limits
+    if (posX < 1 || posX > m_sizeX){
+        if(ok) *ok = false;
+        return Piece::none;
+    }
+    if (posY < 1 || posY > m_sizeY){
+        if(ok) *ok = false;
+        return Piece::none;
     }
     // Getting the symbol
     if(ok) *ok = true;
     return m_array[posX - 1][posY - 1];
 }
-char Board::get_symbol(const Position& pos, bool* ok) const{
-    return get_symbol(pos.x(), pos.y(), ok);
+Piece Board::getPiece(const Position& pos, bool* ok) const{
+    return getPiece(pos.x(), pos.y(), ok);
+}
+
+// TODO: Probably pretty expensive: not quite my tempo
+//~ std::vector<std::vector<char>> Board::get_array(){
+//~     return m_array;
+//~ }
+
+// Get functions
+std::size_t Board::getSizeX() const{
+    return m_sizeX;
+}
+std::size_t Board::getSizeY() const{
+    return m_sizeY;
 }
 
 //std::vector<std::vector<int>> Board::find_winning_sequences( void ){
@@ -94,7 +97,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ) const{
     // test for horizontal sequences
     for(std::size_t i{0}; i < m_sizeX; ++i){
         for(std::size_t j {0}; j < m_sizeY - 4; ++j){
-            if(m_array[i][j] != m_defaultSymbol
+            if(m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i][j+1]
                     && m_array[i][j] == m_array[i][j+2]
                     && m_array[i][j] == m_array[i][j+3]
@@ -107,7 +110,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ) const{
     // test for diagonal sequences
     for(std::size_t i{0}; i < m_sizeX - 4; ++i){
         for(std::size_t j{0}; j < m_sizeY - 4; ++j){
-            if (m_array[i][j] != m_defaultSymbol
+            if (m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i+1][j+1]
                     && m_array[i][j] == m_array[i+2][j+2]
                     && m_array[i][j] == m_array[i+3][j+3]
@@ -120,7 +123,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ) const{
     // test for vertical sequences
     for(std::size_t i{0}; i < m_sizeX - 4; ++i){
         for(std::size_t j{0}; j < m_sizeY; ++j){
-            if(m_array[i][j] != m_defaultSymbol
+            if(m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i+1][j]
                     && m_array[i][j] == m_array[i+2][j]
                     && m_array[i][j] == m_array[i+3][j]
@@ -133,7 +136,7 @@ std::vector<WinningSequence> Board::find_winning_sequences( void ) const{
     // test for anti diagonal sequences
     for(std::size_t i{0}; i < m_sizeX - 4; ++i){
         for(std::size_t j{4}; j < m_sizeY; ++j){
-            if(m_array[i][j] != m_defaultSymbol
+            if(m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i+1][j-1]
                     && m_array[i][j] == m_array[i+2][j-2]
                     && m_array[i][j] == m_array[i+3][j-3]
@@ -149,7 +152,7 @@ bool Board::getWinningSequence(WinningSequence& seq) const{
     // test for horizontal sequences
     for(std::size_t i{0}; i < m_sizeX; ++i){
         for(std::size_t j {0}; j < m_sizeY - 4; ++j){
-            if(m_array[i][j] != m_defaultSymbol
+            if(m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i][j+1]
                     && m_array[i][j] == m_array[i][j+2]
                     && m_array[i][j] == m_array[i][j+3]
@@ -163,7 +166,7 @@ bool Board::getWinningSequence(WinningSequence& seq) const{
     // test for diagonal sequences
     for(std::size_t i{0}; i < m_sizeX - 4; ++i){
         for(std::size_t j{0}; j < m_sizeY - 4; ++j){
-            if (m_array[i][j] != m_defaultSymbol
+            if (m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i+1][j+1]
                     && m_array[i][j] == m_array[i+2][j+2]
                     && m_array[i][j] == m_array[i+3][j+3]
@@ -177,7 +180,7 @@ bool Board::getWinningSequence(WinningSequence& seq) const{
     // test for vertical sequences
     for(std::size_t i{0}; i < m_sizeX - 4; ++i){
         for(std::size_t j{0}; j < m_sizeY; ++j){
-            if(m_array[i][j] != m_defaultSymbol
+            if(m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i+1][j]
                     && m_array[i][j] == m_array[i+2][j]
                     && m_array[i][j] == m_array[i+3][j]
@@ -191,7 +194,7 @@ bool Board::getWinningSequence(WinningSequence& seq) const{
     // test for anti diagonal sequences
     for(std::size_t i{0}; i < m_sizeX - 4; ++i){
         for(std::size_t j{4}; j < m_sizeY; ++j){
-            if(m_array[i][j] != m_defaultSymbol
+            if(m_array[i][j] != Piece::none
                     && m_array[i][j] == m_array[i+1][j-1]
                     && m_array[i][j] == m_array[i+2][j-2]
                     && m_array[i][j] == m_array[i+3][j-3]
@@ -233,7 +236,7 @@ void Board::buildBoard(){
     // Building a new board
     // TODO: check whether this step can fail with std::vector
     // Eventually adding an upper limit to the dimensions
-    m_array = board_t(m_sizeX, std::vector<char>(m_sizeY, m_defaultSymbol));
+    m_array = board_t(m_sizeX, std::vector<Piece>(m_sizeY, Piece::none));
 }
 
 // Overloading the << insertion operator
@@ -242,6 +245,14 @@ std::ostream& operator<<(std::ostream& stream, const Board& board){
     // Both work, both are cool
     //if(board.isValid()) MarcoPrint::marcoPrint(stream, board.m_sizeY, board.m_array);
     if(board.isValid()) JosephPrint::josephPrint(stream, board.m_sizeY, board.m_array);
+    return stream;
+}
+
+// Overloading the << operator to print the pieces
+std::ostream& operator<<(std::ostream& stream, Piece piece){
+    if(piece == Piece::player1) stream << g_player1Symbol;
+    else if(piece == Piece::player2) stream << g_player2Symbol;
+    else stream << g_defaultSymbol;
     return stream;
 }
 
@@ -274,7 +285,7 @@ void print_array_empty_row(std::ostream& stream, std::size_t size){
     for (std::size_t i {0}; i < size; ++i) stream << "|   ";
     stream << "|" << '\n';
 }
-void print_array_filled_row(std::ostream& stream, std::size_t pos, const std::vector<char>& row){
+void print_array_filled_row(std::ostream& stream, std::size_t pos, const std::vector<Piece>& row){
     int padlen_left;
     int padlen_right;
     std::string str{ std::to_string(pos) };
@@ -323,9 +334,9 @@ void printHorizontalLine(std::ostream& stream, std::size_t size){
     for (std::size_t i {0}; i < size; ++i) stream << "+---";
     stream << "+\n";
 }
-void printHorizontalData(std::ostream& stream, std::size_t pos, const std::vector<char>& row){
+void printHorizontalData(std::ostream& stream, std::size_t pos, const std::vector<Piece>& row){
     stream << getFormatedNumber(pos);
-    for(char content: row) stream << "| " << content << ' ';
+    for(Piece content: row) stream << "| " << content << ' ';
     stream << "|\n";
 }
 std::string getFormatedNumber(int number){

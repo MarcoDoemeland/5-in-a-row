@@ -33,7 +33,7 @@ namespace FIAR{
 
 // Constructor
 Game::Game()
-    : m_board(g_boardSizeX, g_boardSizeY, g_defaultSymbol){
+    : m_board(g_boardSizeX, g_boardSizeY){
     definePlayer1();
     definePlayer2();
     try{
@@ -69,8 +69,8 @@ void Game::start(){
     while(!winnerFound() && cycleCount < m_board.area()){
         // Telling who is playing
         std::cout << *m_currentPlayer << " is playing: ";
-        // Actually playing
-        m_currentPlayer->doAction();
+        // Getting the position the player wants to use and placing on the board
+        m_board.addPiece(m_currentPlayer->doAction(), m_currentPlayer->piece());
         // Printing the board
         std::cout << m_board << '\n';
         // Swapping the current player
@@ -119,17 +119,15 @@ void Game::start(){
 }
 // A winner was found, returning a pointer
 PlayerBase* Game::winnerFound() const{
-    // TODO
     // Looking for winning combination and returning the pointer to the player it belongs to
     // If no combination found returning nullptr
-
     WinningSequence sequence;
     if(m_board.getWinningSequence(sequence)){
-        if(sequence.m_symbol == m_player1->symbol()){
+        if(sequence.m_piece == Piece::player1){
             m_player1->incrementWinCount();
             return m_player1;
         }
-        else if(sequence.m_symbol == m_player2->symbol()){
+        else if(sequence.m_piece == Piece::player2){
             m_player2->incrementWinCount();
             return m_player2;
         }
@@ -139,18 +137,18 @@ PlayerBase* Game::winnerFound() const{
 
 // Defining the players
 void Game::definePlayer1(){
-    definePlayer("first", m_player1, 'x');
+    definePlayer("first", m_player1, Piece::player1);
 }
 void Game::definePlayer2(){
-    definePlayer("second", m_player2, 'o');
+    definePlayer("second", m_player2, Piece::player2);
 }
-void Game::definePlayer(const std::string& text, PlayerBase*& player, char playerSymbol){
+void Game::definePlayer(const std::string& text, PlayerBase*& player, Piece piece){
     // Building a list containing all usable players (only by the first call)
     static const std::vector<int> s_playerIds{ player_human, player_random, player_joseph };
 
     // Building the string to be displayed
     std::string message = "Choose your " + text + " player (";
-    for(std::size_t i{ 0 }; i < s_playerIds.size(); ++i){
+    for(std::size_t i{ 0u }; i < s_playerIds.size(); ++i){
         message.append(std::to_string(s_playerIds[i]));
         if(i < s_playerIds.size() - 1) message.append(", ");
     }
@@ -163,16 +161,16 @@ void Game::definePlayer(const std::string& text, PlayerBase*& player, char playe
     // ... And building the player
     switch(playerId){
     case player_human:
-        player = new PlayerHuman(&m_board, getInputFromUser<std::string>("Enter the player's name: "), playerSymbol);
+        player = new PlayerHuman(&m_board, getInputFromUser<std::string>("Enter the player's name: "), piece);
         break;
     case player_random:
-        player = new PlayerRandom(&m_board, playerSymbol);
+        player = new PlayerRandom(&m_board, piece);
         break;
     case player_marco:
         player = nullptr;
         break;
     case player_joseph:
-        player = new PlayerJoseph(&m_board, playerSymbol);
+        player = new PlayerJoseph(&m_board, piece);
         break;
     // Stupid, but allows getting the warning away.
     case player_max:
@@ -188,6 +186,7 @@ void Game::definePlayer(const std::string& text, PlayerBase*& player, char playe
 void Game::defineCurrentPlayer(){
     // Defining which player should play first
     int firstPlayer{ getRandomInt(1, 2) };
+    // Distruting the roles
     if(firstPlayer == 1) m_currentPlayer = m_player1;
     else m_currentPlayer = m_player2;
     // Displaying a short message

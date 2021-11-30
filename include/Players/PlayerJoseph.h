@@ -12,12 +12,12 @@ namespace FIAR{
 class PlayerJoseph final : public PlayerBase{
 public:
     // Constructor
-    PlayerJoseph(Board* board, char symbol);
+    PlayerJoseph(Board* board, Piece piece);
     // Destructor
     virtual ~PlayerJoseph();
 
     // Function to use to make an action
-    void doAction() override;
+    Position doAction() override;
 
 private:
 

@@ -3,8 +3,8 @@
 namespace FIAR{
 
 // Constructor
-PlayerJoseph::PlayerJoseph(Board* board, char symbol)
-    : PlayerBase( board, "JosephBot", symbol ){
+PlayerJoseph::PlayerJoseph(Board* board, Piece piece)
+    : PlayerBase( board, "JosephBot", piece ){
 
 }
 
@@ -14,8 +14,9 @@ PlayerJoseph::~PlayerJoseph(){
 }
 
 // Function to use to make an action
-void PlayerJoseph::doAction(){
+Position PlayerJoseph::doAction(){
 
+    return Position{};
 }
 
 }// ENd namespace FIAR

@@ -23,14 +23,14 @@ class PlayerHuman : public PlayerBase
 {
 public:
     // Constructor
-    PlayerHuman(Board* board, const std::string& playerName, char playerSymbol);
+    PlayerHuman(const Board* board, const std::string& playerName, Piece piece);
 
     // Destructor
     virtual ~PlayerHuman();
 
     // Asking the player to make an action
     // This function has to be overriden
-    void doAction() override;
+    Position doAction() override;
 
     // constructor
     //~ PlayerBase( int i );

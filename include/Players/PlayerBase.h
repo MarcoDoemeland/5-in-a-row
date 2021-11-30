@@ -26,35 +26,35 @@ class PlayerBase
 {
 public:
     // Constructor
-    PlayerBase(Board* board, const std::string& playerName, char playerSymbol);
-
-    // constructor - to be removed? TODO
-    //~ PlayerBase( int i = 0 );
+    PlayerBase(const Board* board, const std::string& playerName, Piece piece);
 
     // Destructor
     virtual ~PlayerBase();
 
     // Asking the player to make an action
     // This function is pure virtual, because doing an action should be specific to any type of player
-    virtual void doAction() = 0;
+    virtual Position doAction() = 0;
 
     // Accessor to the name and count of wins
     std::string name() const;
     int winCount() const;
-
-    // Accessor to symbol
-    char symbol() const;
+    // Accessor to the symbol
+    //char symbol() const;
+    // Accessor to the piece
+    Piece piece() const;
 
     // Incrementing the count of wins
     void incrementWinCount();
 
 protected:
     // Pointer to the playboard
-    Board* m_board{ nullptr };
+    const Board* m_board{ nullptr };
     // Name of the player
     std::string m_name{ "" };
-    // Symbol to be used when playing
-    char m_symbol{ '\0' };
+    // Symbol of the player
+    //char m_symbol{ g_defaultSymbol };
+    // Piece of the player
+    Piece m_piece{ Piece::none };
     // Count of wins
     int m_winCount{ 0 };
 
@@ -68,34 +68,6 @@ private:
     PlayerBase(const PlayerBase& p) = delete;
     PlayerBase& operator=(const PlayerBase& p) = delete;
 
-        // constructor for square board
-        //~ Board( unsigned int const size );
-
-        // destructor
-        //~ ~Printer( void );
-
-        // ...
-        //~ auto add_symbol(	int const pos_x,
-                            //~ int const pos_y,
-                            //~ char const symbol
-                        //~ ) -> bool;
-
-        // ...
-        //~ auto get_array( void ) -> std::vector<std::vector<char>>;
-
-        // ...
-        //~ auto find_winning_sequences( void ) -> std::vector< std::vector< int > >;
-
-    private:
-
-        // size of board
-        //~ FIAR::Board board;
-        //~ unsigned int size_y;
-        //~ char default_symbol;
-
-        // actual board representation
-        //~ std::vector<std::vector<char>> array;
-        //~ std::vector<char> array;
 };
 
 // Printing a player

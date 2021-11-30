@@ -5,14 +5,9 @@
 
 namespace FIAR{
 
-	//~ PlayerBase::PlayerBase( int i )
-	//~ {
-		//~ std::cout << i << '\n';
-	//~ }
-
 // Constructor
-PlayerHuman::PlayerHuman(Board* board, const std::string& playerName, char playerSymbol)
-    : PlayerBase( board, playerName, playerSymbol ){
+PlayerHuman::PlayerHuman(const Board* board, const std::string& playerName, Piece piece)
+    : PlayerBase( board, playerName, piece ){
 
 }
 
@@ -23,12 +18,16 @@ PlayerHuman::~PlayerHuman(){
 
 // Asking the player to make an action
 // This function has to be overriden
-void PlayerHuman::doAction(){
+Position PlayerHuman::doAction(){
     // This can be called by PlayerHuman to get an object "Position" from the terminal
     Position pos{ getInputFromUser<Position>("\nEnter a position: ") };
-    while(!m_board->add_symbol(pos, m_symbol)){
-        pos = getInputFromUser<Position>("\nThis slot is already occupied, please enter another position: ");
+    bool posValid;
+    while(!m_board->isEmptyAt(pos, &posValid)){
+        if(posValid) pos = getInputFromUser<Position>("\nThis cell is already occupied, please enter another position: ");
+        else pos = getInputFromUser<Position>("\nThis position is invalid, please enter another position: ");
     }
+    // Returning the position
+    return pos;
 }
 
 }// End namespace FIAR
