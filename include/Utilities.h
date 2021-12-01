@@ -24,6 +24,7 @@ T getValidInputFromUser(const std::string& msg, const std::vector<T>& ref);
 
 // Getting a random value inside of the given limits
 int getRandomInt(int min, int max);
+double getRandomDouble(double min, double max);
 
 }// End namespace FIAR
 

@@ -15,25 +15,39 @@ Board::Board(std::size_t sizeX, std::size_t sizeY)
     buildBoard();
 }
 
+// check whether Position is in or outside the board
+bool Board::tileIsInside(int posX, int posY) const{
+    return ( !(    posX < 1
+				|| posX > static_cast<int>(m_sizeX)
+				|| posY < 1
+				|| posY > static_cast<int>(m_sizeY)
+				));
+}
+bool Board::tileIsInside(const Position& pos) const{
+    return tileIsInside(pos.x(), pos.y());
+}
+
 // check whether Tile is empty (returns true of empty)
-bool Board::checkTile(std::size_t posX, std::size_t posY) const{
+bool Board::checkTile(int posX, int posY) const{
     // Cases where the symbol can not be added
-    if (posX < 1 || posX > m_sizeX) return false;
-    if (posY < 1 || posY > m_sizeY) return false;
-    return (m_array[posX - 1][posY - 1] == Piece::none);
+    if (!tileIsInside(posX, posY)) return false;
+    else return m_array[posX - 1][posY - 1] == Piece::none;
+    //~ if (posY < 1 || posY > static_cast<int>(m_sizeY)) return false;
+    //~ return (m_array[posX - 1][posY - 1] == Piece::none);
+    //~ return ( tileIsInside(posX, posY) && m_array[posX - 1][posY - 1] == Piece::none );
 }
 bool Board::checkTile(const Position& pos) const{
     return checkTile(pos.x(), pos.y());
 }
 
 // Telling whether or not a cell is containing Piece::none
-bool Board::isEmptyAt(std::size_t posX, std::size_t posY, bool* ok) const{
+bool Board::isEmptyAt(int posX, int posY, bool* ok) const{
     // Cases where the coordinates are outside the limits
-    if (posX < 1 || posX > m_sizeX){
+    if (posX < 1 || posX > static_cast<int>(m_sizeX)){
         if(ok) *ok = false;
         return false;
     }
-    if (posY < 1 || posY > m_sizeY){
+    if (posY < 1 || posY > static_cast<int>(m_sizeY)){
         if(ok) *ok = false;
         return false;
     }
@@ -46,7 +60,7 @@ bool Board::isEmptyAt(const Position& pos, bool* ok) const{
 }
 
 // TODO: using indexes starting with 1 could be pretty "dangerous" imo
-bool Board::addPiece(std::size_t posX, std::size_t posY, Piece piece){
+bool Board::addPiece(int posX, int posY, Piece piece){
     // Cases where the symbol can not be added
     if(!checkTile(posX, posY)) return false;
     // Adding the symbol
@@ -58,13 +72,13 @@ bool Board::addPiece(const Position& pos, Piece piece){
 }
 
 // Returning the piece contained at the given position
-Piece Board::getPiece(std::size_t posX, std::size_t posY, bool* ok) const{
+Piece Board::getPiece(int posX, int posY, bool* ok) const{
     // Cases where the coordinates are outside the limits
-    if (posX < 1 || posX > m_sizeX){
+    if (posX < 1 || posX > static_cast<int>(m_sizeX)){
         if(ok) *ok = false;
         return Piece::none;
     }
-    if (posY < 1 || posY > m_sizeY){
+    if (posY < 1 || posY > static_cast<int>(m_sizeY)){
         if(ok) *ok = false;
         return Piece::none;
     }

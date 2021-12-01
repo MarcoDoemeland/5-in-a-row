@@ -1,5 +1,6 @@
 
 #include <algorithm>
+#include <stdio.h>
 #include <vector>
 
 #include "Defines.h"
@@ -64,88 +65,102 @@ Position PlayerDefensive::doAction(){
 		}
 	}
 
-	pos = matrixMaxPos(policyBoard);
+	pos = matrixMaxPosition(policyBoard);
 
 	return pos;
 
 }
 
+
+
+
+
+
+//----------------------------------------------------------------------
+double PlayerDefensive::evaluateDirection(const Position& currentPosition, const Position& direction)
+{
+	double retVal{ 1.0 };
+	Piece ownTile{ m_piece };
+	Piece opponentTile{ };
+
+	if (ownTile == Piece::player1) opponentTile = Piece::player2;
+	else opponentTile = Piece::player1;
+
+	for (int factor{1}; factor < 5; ++factor)
+	{
+		Position positionToBeChecked{ currentPosition + factor*direction };
+		if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
+
+		Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
+		if ( tileToBeChecked != opponentTile )
+		{
+			break;
+		}
+
+		retVal *= 4.0;
+	}
+
+	for (int factor{1}; factor < 5; ++factor)
+	{
+		Position positionToBeChecked{ currentPosition - factor*direction };
+		if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
+
+		Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
+		if ( tileToBeChecked != opponentTile ) break;
+
+		retVal *= 4.0;
+	}
+
+	retVal -= 1.0;
+	return retVal;
+}
+
+
 //----------------------------------------------------------------------
 //~ matrix_t<double> PlayerDefensive::computePolicy(matrix_t<char> boardSymbols)
 matrix_t<double> PlayerDefensive::computePolicy()
 {
-	//~ auto boardPolicy ( (boardSymbols[0].size(), std::vector<double>()) );
-	//~ matrix_t<double> boardPolicy [boardSymbols.size()][boardSymbols[0].size()];
-	//~ matrix_t<double> boardPolicy [m_boardH][m_boardW];
-	matrix_t<int> boardArray (m_boardH, std::vector<int>(m_boardW));
 	matrix_t<double> boardPolicy (m_boardH, std::vector<double>(m_boardW));
-	//~ std::vector<std::vector<double>> boardPolicy (5, std::vector<double>(10));
-
-	Piece tempTileContent{ };
-
-	for (std::size_t i{0}; i < m_boardH; ++i)
-	{
-		for (std::size_t j{0}; j < m_boardW; ++j)
-		{
-			tempTileContent = m_board->getPiece(i+1,j+1);
-
-			if (tempTileContent == m_piece)
-			{
-				boardArray[i][j] = 1;
-			} else if (tempTileContent == Piece::none)
-			{
-				boardArray[i][j] = 0;
-			} else
-			{
-				boardArray[i][j] = -1;
-			}
-
-
-			//~ if (tempTileContent == Piece::none):
-				//~ boardArray[i][j] = 0;
-
-			//~ switch( static_cast<int>(tempTileContent) )
-			//~ {
-				//~ case( static_cast<int>(Piece::none) ):
-					//~ boardArray[i][j] = 0;
-					//~ break;
-				//~ case( static_cast<int>(m_piece) ):
-					//~ boardArray[i][j] = 1;
-					//~ break;
-				 //~ default:
-					//~ boardArray[i][j] = -1;
-					//~ break;
-			//~ }
-
-			//~ boardArray[i][j] = static_cast<double>(m_board->getPiece(i+1,j+1));
-			//~ boardPolicy[i][j] = static_cast<double>(boardSymbols[i][j]);
-			//~ boardPolicy[i].push_back(static_cast<double>(boardSymbols[i][j]));
-
-			//~ std::cout << boardArray[i][j] << ' ';
-		}
-
-		//~ std::cout << '\n';
-	}
 
 	int i_max {static_cast<int>(m_boardH)-1};
 	int j_max {static_cast<int>(m_boardW)-1};
 
+	Piece emptyTile{ Piece::none };
+	std::vector<Position> directions{ Position(0,1), Position(1,1), Position(1,0), Position(1,-1) };
+
+
+	std::cout << '\n';
 	for (int i{0}; i <= i_max ; ++i)
 	{
 		for (int j{0}; j < j_max; ++j)
 		{
-			if (boardArray[i][j] != 0) continue;
+    		//~ static double s_frac{ 1. / RAND_MAX };
+			boardPolicy[i][j] += getRandomDouble(0., 0.5);
+			//~ std::cout << getRandomDouble(0., 0.5) << '\n';
+			//~ std::cout << rand()*s_frac << '\n';
 
-			if ( i >= 1 && boardArray[i-1][j] == -1 ) boardPolicy[i][j] += 1;
-			if ( i <= i_max-1 && boardArray[i+1][j] == -1 ) boardPolicy[i][j] += 1;
-			if ( j >= 1 && boardArray[i][j-1] == -1 ) boardPolicy[i][j] += 1;
-			if ( j <= j_max-1 && boardArray[i][j+1] == -1 ) boardPolicy[i][j] += 1;
-			//~ if ( i > 1 && boardArray[i-2][j] == -1 ) boardPolicy[i][j] += 1;
-			//~ if ( i > 1 && boardArray[i-2][j] == -1 ) boardPolicy[i][j] += 1;
+
+			Position currentPosition{ Position(i+1,j+1) };
+			Piece currentTile{ m_board->getPiece(currentPosition) };
+
+			if (currentTile != emptyTile)
+			{
+				std::cout << "       ";
+				continue;
+			}
+
+			for (auto direction : directions)
+			{
+				boardPolicy[i][j] += evaluateDirection( currentPosition, direction);
+			}
+
+
+			//~ std::cout << boardPolicy[i][j] << ' ';
+			printf("%6.1f ", boardPolicy[i][j]);
 		}
+		std::cout << '\n';
 	}
 
-	//~ std::cout << "bla" << '\n';
 
 	return boardPolicy;
 }
@@ -173,7 +188,7 @@ T matrixMax(matrix_t<T> matrix)
 
 //----------------------------------------------------------------------
 template <typename T>
-Position matrixMaxPos(matrix_t<T> matrix)
+Position matrixMaxPosition(matrix_t<T> matrix)
 {
 	T maximum{ matrix[0][0]};
 	Position maxpos(1,1);

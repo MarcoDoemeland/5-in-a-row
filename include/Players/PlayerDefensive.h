@@ -36,6 +36,8 @@ public:
     // This function has to be overriden
     Position doAction() override;
 
+    double evaluateDirection(const Position& currentPosition, const Position& direction);
+
 
 private:
 
@@ -61,7 +63,7 @@ template <typename T>
 T matrixMax(matrix_t<T> matrix);
 
 template <typename T>
-Position matrixMaxPos(matrix_t<T> matrix);
+Position matrixMaxPosition(matrix_t<T> matrix);
 
 }// End namespace FIAR
 
