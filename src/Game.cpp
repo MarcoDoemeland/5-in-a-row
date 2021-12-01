@@ -8,6 +8,7 @@
 
 #include "Position.h"
 
+#include "Players/PlayerDefensive.h"
 #include "Players/PlayerHuman.h"
 #include "Players/PlayerJoseph.h"
 #include "Players/PlayerRandom.h"
@@ -144,7 +145,7 @@ void Game::definePlayer2(){
 }
 void Game::definePlayer(const std::string& text, PlayerBase*& player, Piece piece){
     // Building a list containing all usable players (only by the first call)
-    static const std::vector<int> s_playerIds{ player_human, player_random, player_joseph };
+    static const std::vector<int> s_playerIds{ player_human, player_random, player_joseph, player_defensive };
 
     // Building the string to be displayed
     std::string message = "Choose your " + text + " player (";
@@ -171,6 +172,9 @@ void Game::definePlayer(const std::string& text, PlayerBase*& player, Piece piec
         break;
     case player_joseph:
         player = new PlayerJoseph(&m_board, piece);
+        break;
+    case player_defensive:
+        player = new PlayerDefensive(&m_board, piece);
         break;
     // Stupid, but allows getting the warning away.
     case player_max:

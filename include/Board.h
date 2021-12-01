@@ -36,21 +36,25 @@ public:
     // No assignement operator
     Board& operator=(const Board& b) = delete;
 
-    // ...
-    bool checkTile(std::size_t posX, std::size_t posY) const;
+    // check whether Position is in or outside the board
+    bool tileIsInside(int posX, int posY) const;
+    bool tileIsInside(const Position& pos) const;
+
+    // check whether Tile is empty (returns true of empty)
+    bool checkTile(int posX, int posY) const;
     bool checkTile(const Position& pos) const;
 
     // Telling whether or not a cell is containing Piece::none
     // Similar to checkTile but with enhanced error management
-    bool isEmptyAt(std::size_t posX, std::size_t posY, bool* ok = nullptr) const;
+    bool isEmptyAt(int posX, int posY, bool* ok = nullptr) const;
     bool isEmptyAt(const Position& pos, bool* ok = nullptr) const;
 
     // Adding a piece
-    bool addPiece(std::size_t posX, std::size_t posY, Piece piece);
+    bool addPiece(int posX, int posY, Piece piece);
     bool addPiece(const Position& pos, Piece piece);
 
     // Returning the piece contained at the given position
-    Piece getPiece(std::size_t posX, std::size_t posY, bool* ok = nullptr) const;
+    Piece getPiece(int posX, int posY, bool* ok = nullptr) const;
     Piece getPiece(const Position& pos, bool* ok = nullptr) const;
 
     // Dimensions of the board
