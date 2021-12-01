@@ -129,7 +129,7 @@ matrix_t<double> PlayerDefensive::computePolicy()
 	std::vector<Position> directions{ Position(0,1), Position(1,1), Position(1,0), Position(1,-1) };
 
 
-	std::cout << '\n';
+	//~ std::cout << '\n';
 	for (int i{0}; i <= i_max ; ++i)
 	{
 		for (int j{0}; j < j_max; ++j)
@@ -156,9 +156,9 @@ matrix_t<double> PlayerDefensive::computePolicy()
 
 
 			//~ std::cout << boardPolicy[i][j] << ' ';
-			printf("%6.1f ", boardPolicy[i][j]);
+			//~ printf("%6.1f ", boardPolicy[i][j]);
 		}
-		std::cout << '\n';
+		//~ std::cout << '\n';
 	}
 
 
