@@ -145,7 +145,7 @@ matrix_t<double> PlayerDefensive::computePolicy()
 
 			if (currentTile != emptyTile)
 			{
-				std::cout << "       ";
+				//~ std::cout << "       ";
 				continue;
 			}
 
