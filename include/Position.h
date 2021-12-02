@@ -20,6 +20,8 @@ public:
     // Accessors
     std::size_t x() const;
     std::size_t y() const;
+    void setX(std::size_t val);
+    void setY(std::size_t val);
 
     // I/O operators
     friend std::ostream& operator<<(std::ostream& stream, const Position& pos);

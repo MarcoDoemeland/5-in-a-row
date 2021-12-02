@@ -31,6 +31,12 @@ std::size_t Position::x() const{
 std::size_t Position::y() const{
     return m_y;
 }
+void Position::setX(std::size_t val){
+    m_x = val;
+}
+void Position::setY(std::size_t val){
+    m_y = val;
+}
 
 // I/O operators
 std::ostream& operator<<(std::ostream& stream, const Position& pos){
