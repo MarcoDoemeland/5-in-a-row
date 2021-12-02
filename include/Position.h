@@ -12,16 +12,16 @@ public:
     // Copy constructor
     Position(const Position& pos);
     // Constructor taking a position with 2 integers as input (actual constructor)
-    Position(std::size_t x, std::size_t y);
+    Position(int x, int y);
 
     // Assignement operator
     Position& operator=(const Position& pos);
 
     // Accessors
-    std::size_t x() const;
-    std::size_t y() const;
-    void setX(std::size_t val);
-    void setY(std::size_t val);
+    int x() const;
+    int y() const;
+    void setX(int val);
+    void setY(int val);
 
     // I/O operators
     friend std::ostream& operator<<(std::ostream& stream, const Position& pos);
@@ -29,10 +29,20 @@ public:
 
 private:
     // Actual position
-    std::size_t m_x;
-    std::size_t m_y;
+    int m_x;
+    int m_y;
 
 };
+
+
+// algebraic operations for Position
+const Position operator+(const Position& pos1, const Position& pos2);	// addition of Positions
+const Position operator-(const Position& pos1, const Position& pos2);	// subtraction of Positions
+const Position operator*(const int& factor, const Position& pos);	// scalar multiplication
+const Position operator*(const Position& pos, const int& factor);	// scalar multiplication
+
+// Comparison operator
+bool operator==(const Position& p1, const Position& p2);
 
 }// End namespace FIAR
 
