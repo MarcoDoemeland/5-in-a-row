@@ -151,11 +151,19 @@ bool PlayerJoseph::lookForDeadlySequence3(Position& pos){
 }
 // Looking for a spot where a win sequence of the 3rd order can be placed
 bool PlayerJoseph::lookForWinSequence4(Position& pos){
-
-
+    // Size of the sequence
+    m_seqSize = 5;
+    // Max count of blank section expected
+    m_maxCount = 1;
+    // Reference line status code
+    m_refStatus = line_winIn4;
+    // Comparison method, getting a reference to the corresponding function
+    m_compFunc = &PlayerJoseph::pieceIsAdversary;
+    // Sequence searching function, sequence with 1 vacancy
+    m_trackFunc = &PlayerJoseph::sequenceType3Found;
+    // Looking for a linear sequence
     log("WinSeq4 tracking starts...");
-
-    return false;
+    return lookForLinearSequence(pos);
 }
 // Looking for a spot where a single stone is placed and giving him a friend
 bool PlayerJoseph::lookForBuildPair(Position& pos){

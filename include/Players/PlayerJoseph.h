@@ -93,6 +93,8 @@ private:
     bool freeValidSequenceFound(std::size_t inX, std::size_t inY, Position& pos);
     // Reading a sequence (limits must be free, evaluation must return symetrical data)
     bool sequenceType3Found(std::size_t inX, std::size_t inY, Position& pos);
+    // Reading a sequence (limits must be free, evaluation returns single point)
+    bool sequenceType4Found(std::size_t inX, std::size_t inY, Position& pos);
 
     // Looking around a given position
     void lookAround(PlayerJoseph::PosData& posData);
@@ -162,7 +164,8 @@ private:
     bool (PlayerJoseph::*m_trackFunc)(std::size_t inX, std::size_t inY, Position& pos){ nullptr };
 
     // Logging
-    bool m_enableLog{true};
+    //bool m_enableLog{true};
+    bool m_enableLog{false};
     std::ofstream m_fileStream;
 };
 
