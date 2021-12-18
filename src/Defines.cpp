@@ -16,6 +16,7 @@ namespace FIAR
 extern const std::size_t g_boardSizeX{ 15u };
 extern const std::size_t g_boardSizeY{ 15u };
 extern const char g_defaultSymbol{ ' ' };
+extern const char g_outsideSymbol{ '#' };
 extern const char g_player1Symbol{ 'x' };
 extern const char g_player2Symbol{ 'o' };
 

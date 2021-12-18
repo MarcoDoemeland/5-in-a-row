@@ -76,11 +76,11 @@ Piece Board::getPiece(int posX, int posY, bool* ok) const{
     // Cases where the coordinates are outside the limits
     if (posX < 1 || posX > static_cast<int>(m_sizeX)){
         if(ok) *ok = false;
-        return Piece::none;
+        return Piece::outside;
     }
     if (posY < 1 || posY > static_cast<int>(m_sizeY)){
         if(ok) *ok = false;
-        return Piece::none;
+        return Piece::outside;
     }
     // Getting the symbol
     if(ok) *ok = true;
@@ -266,6 +266,7 @@ std::ostream& operator<<(std::ostream& stream, const Board& board){
 std::ostream& operator<<(std::ostream& stream, Piece piece){
     if(piece == Piece::player1) stream << g_player1Symbol;
     else if(piece == Piece::player2) stream << g_player2Symbol;
+    else if(piece == Piece::outside) stream << g_outsideSymbol;
     else stream << g_defaultSymbol;
     return stream;
 }

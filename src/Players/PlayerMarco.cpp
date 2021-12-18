@@ -5,15 +5,15 @@
 
 #include "Defines.h"
 #include "Utilities.h"
-#include "Players/PlayerDefensive.h"
+#include "Players/PlayerMarco.h"
 
 namespace FIAR{
 
 
 //----------------------------------------------------------------------
 // Constructor
-PlayerDefensive::PlayerDefensive(const Board* board, Piece symbol)
-    : PlayerBase( board, "DefensiveBot", symbol )
+PlayerMarco::PlayerMarco(const Board* board, Piece symbol)
+    : PlayerBase( board, "MarcoBot", symbol )
     , m_boardH{ board->getSizeX() }
     , m_boardW{ board->getSizeY() }
 {
@@ -22,14 +22,14 @@ PlayerDefensive::PlayerDefensive(const Board* board, Piece symbol)
 
 //----------------------------------------------------------------------
 // Destructor
-PlayerDefensive::~PlayerDefensive()
+PlayerMarco::~PlayerMarco()
 {
 
 }
 
 //----------------------------------------------------------------------
 // Asking the player to make an action
-Position PlayerDefensive::doAction(){
+Position PlayerMarco::doAction(){
 
     Position pos(1,1);
 
@@ -54,16 +54,17 @@ Position PlayerDefensive::doAction(){
 	//~ std::cout << matrixMax(policyBoard) << '\n';
 	//~ std::cout << matrixMaxPos(policyBoard) << '\n';
 
-	for (int i{0}; i < static_cast<int>(m_boardH); ++i)
-	{
-		for (int j{0}; j < static_cast<int>(m_boardW); ++j)
-		{
+	//~ for (int i{0}; i < static_cast<int>(m_boardH); ++i)
+	//~ {
+		//~ for (int j{0}; j < static_cast<int>(m_boardW); ++j)
+		//~ {
+			//~ Position currentPosition{ Position(i+1,j+1) };
 			//~ char ij_content{ array[i][j] };
 			//~ std::cout << i << ' ' << j << " : " << array[i][j] << '\n';
 			//~ std::cout << i << ' ' << j << " : " << policyBoard[i][j] << '\n';
 			//~ std::cout << typeid(j).name() << '\n';
-		}
-	}
+		//~ }
+	//~ }
 
 	pos = matrixMaxPosition(policyBoard);
 
@@ -77,22 +78,57 @@ Position PlayerDefensive::doAction(){
 
 
 //----------------------------------------------------------------------
-double PlayerDefensive::evaluateDirection(const Position& currentPosition, const Position& direction)
+// tileFocused : Piece for which policy will be computed
+//				 --> used opponents piece for defensive strategy
+//				 --> used own piece for offensice strategy
+//~ double PlayerMarco::evaluateDirection(const Position& currentPosition, const Position& direction, const Piece& tileFocused)
+//~ {
+	//~ double retVal{ 1.0 };
+
+	//~ for (int factor{1}; factor < 5; ++factor)
+	//~ {
+		//~ Position positionToBeChecked{ currentPosition + factor*direction };
+		//~ if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
+
+		//~ Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
+		//~ if ( tileToBeChecked != tileFocused )
+		//~ {
+			//~ break;
+		//~ }
+
+		//~ retVal *= 4.0;
+	//~ }
+
+	//~ for (int factor{1}; factor < 5; ++factor)
+	//~ {
+		//~ Position positionToBeChecked{ currentPosition - factor*direction };
+		//~ if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
+
+		//~ Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
+		//~ if ( tileToBeChecked != tileFocused ) break;
+
+		//~ retVal *= 4.0;
+	//~ }
+
+	//~ retVal -= 1.0;
+	//~ return retVal;
+//~ }
+double PlayerMarco::evaluateDirection(const Position& currentPosition, const Position& direction, const Piece& tileFocused)
 {
 	double retVal{ 1.0 };
-	Piece ownTile{ m_piece };
-	Piece opponentTile{ };
+	//~ Piece emptyTile{ Piece::none };
+	//~ Piece blockedTile{ Piece::none };
 
-	if (ownTile == Piece::player1) opponentTile = Piece::player2;
-	else opponentTile = Piece::player1;
-
+	//~ int maxReach {1};
+	//~ int numOppInReach {0};
+	//~ for (; maxReach < 5; ++maxReach)
 	for (int factor{1}; factor < 5; ++factor)
 	{
 		Position positionToBeChecked{ currentPosition + factor*direction };
 		if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
 
 		Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
-		if ( tileToBeChecked != opponentTile )
+		if ( tileToBeChecked != tileFocused )
 		{
 			break;
 		}
@@ -106,7 +142,7 @@ double PlayerDefensive::evaluateDirection(const Position& currentPosition, const
 		if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
 
 		Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
-		if ( tileToBeChecked != opponentTile ) break;
+		if ( tileToBeChecked != tileFocused ) break;
 
 		retVal *= 4.0;
 	}
@@ -117,8 +153,47 @@ double PlayerDefensive::evaluateDirection(const Position& currentPosition, const
 
 
 //----------------------------------------------------------------------
-//~ matrix_t<double> PlayerDefensive::computePolicy(matrix_t<char> boardSymbols)
-matrix_t<double> PlayerDefensive::computePolicy()
+double PlayerMarco::computePolicyOfPosition(const Position& currentPosition)
+{
+	double retVal{ 0. };
+	double tendency{ 0.51 }; // fraction to go offensively (1) or defensively (0)
+	//~ double defensiveVal{ 0. };
+	//~ double offensiceVal{ 0. };
+	Piece ownTile{ m_piece };
+	Piece opponentTile{ };
+
+
+	std::vector<Position> directions{ Position(0,1), Position(1,1), Position(1,0), Position(1,-1) };
+
+	if (ownTile == Piece::player1) opponentTile = Piece::player2;
+	else opponentTile = Piece::player1;
+
+
+
+	retVal += getRandomDouble(0., 1.e-5);	// add some unpredictability
+
+	for (auto direction : directions)
+	{
+		// defensice policy
+		double defensiveVal { evaluateDirection( currentPosition, direction, opponentTile) };
+		//~ retVal += evaluateDirection( currentPosition, direction, opponentTile);
+
+		// offensive policy
+		double offensiceVal { evaluateDirection( currentPosition, direction, ownTile) };
+		//~ retVal += 1.01*evaluateDirection( currentPosition, direction, ownTile);
+
+		retVal += tendency * offensiceVal + (1.-tendency) * defensiveVal;
+
+	}
+
+	return retVal;
+	//~ return std::max(defensiveVal, offensiceVal);
+}
+
+
+//----------------------------------------------------------------------
+//~ matrix_t<double> PlayerMarco::computePolicy(matrix_t<char> boardSymbols)
+matrix_t<double> PlayerMarco::computePolicy()
 {
 	matrix_t<double> boardPolicy (m_boardH, std::vector<double>(m_boardW));
 
@@ -126,7 +201,7 @@ matrix_t<double> PlayerDefensive::computePolicy()
 	int j_max {static_cast<int>(m_boardW)-1};
 
 	Piece emptyTile{ Piece::none };
-	std::vector<Position> directions{ Position(0,1), Position(1,1), Position(1,0), Position(1,-1) };
+	//~ std::vector<Position> directions{ Position(0,1), Position(1,1), Position(1,0), Position(1,-1) };
 
 
 	//~ std::cout << '\n';
@@ -135,7 +210,7 @@ matrix_t<double> PlayerDefensive::computePolicy()
 		for (int j{0}; j <= j_max; ++j)
 		{
     		//~ static double s_frac{ 1. / RAND_MAX };
-			boardPolicy[i][j] += getRandomDouble(0., 0.5);
+			//~ boardPolicy[i][j] += getRandomDouble(0., 0.1);
 			//~ std::cout << getRandomDouble(0., 0.5) << '\n';
 			//~ std::cout << rand()*s_frac << '\n';
 
@@ -143,18 +218,24 @@ matrix_t<double> PlayerDefensive::computePolicy()
 			Position currentPosition{ Position(i+1,j+1) };
 			Piece currentTile{ m_board->getPiece(currentPosition) };
 
+			//~ std::cout << static_cast<int>(currentTile) << ' ';
+			//~ std::cout << currentTile << ' ';
+
 			if (currentTile != emptyTile)
 			{
 				//~ std::cout << "       ";
 				continue;
 			}
 
-			for (auto direction : directions)
-			{
-				boardPolicy[i][j] += evaluateDirection( currentPosition, direction);
-			}
+			boardPolicy[i][j] += computePolicyOfPosition( currentPosition );
+			//~ for (auto direction : directions)
+			//~ {
+				//~ boardPolicy[i][j] += evaluateDirection( currentPosition, direction);
+			//~ }
 
 
+			//~ std::cout << currentTile << ' ';
+			//~ printf("%s ", currentTile);
 			//~ std::cout << boardPolicy[i][j] << ' ';
 			//~ printf("%6.1f ", boardPolicy[i][j]);
 		}
