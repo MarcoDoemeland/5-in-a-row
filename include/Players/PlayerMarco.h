@@ -8,6 +8,8 @@
 #ifndef __FIAR_PLAYERMARCO_H__
 #define __FIAR_PLAYERMARCO_H__
 
+#include <map>
+
 // Custom classes and defines
 #include "Defines.h"
 #include "PlayerBase.h"
@@ -50,7 +52,7 @@ private:
 
 
     //~ matrix_t<double> computePolicy(matrix_t<char> boardSymbols);
-    double evaluateDirection ( const Position& currentPosition, const Position& direction, const Piece& tileFocused );
+    int evaluateDirection ( const Position& currentPosition, const Position& direction, const Piece& tileFocused );
 	double computePolicyOfPosition ( const Position& currentPosition );
     matrix_t<double> computePolicy ();
 
@@ -65,6 +67,17 @@ T matrixMax(matrix_t<T> matrix);
 
 template <typename T>
 Position matrixMaxPosition(matrix_t<T> matrix);
+
+template <typename T>
+bool itemInList (const T item, const std::vector<T>& list);
+
+template <typename T>
+std::map<std::string, int> convolveTimeSeries (
+										const std::vector<T>& series,
+										const T               countSymbol,
+										const std::vector<T>& neutralSymbols,
+										const int                windowSize=5
+									);
 
 }// End namespace FIAR
 

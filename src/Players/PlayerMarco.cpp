@@ -75,7 +75,11 @@ Position PlayerMarco::doAction(){
 
 
 
-
+//----------------------------------------------------------------------
+// convolveTimeSeries: (for Series of Length 9 and window size 5)
+//			x_xxxx_xx_x_x__xx_xxx__x__xxx__x_xx___x__xxx
+//			--> find position with most x's in a single of window of fixed size
+//~ double PlayerMarco::evaluateDirection(const Position& currentPosition, const Position& direction, const Piece& tileFocused)
 
 //----------------------------------------------------------------------
 // tileFocused : Piece for which policy will be computed
@@ -113,41 +117,65 @@ Position PlayerMarco::doAction(){
 	//~ retVal -= 1.0;
 	//~ return retVal;
 //~ }
-double PlayerMarco::evaluateDirection(const Position& currentPosition, const Position& direction, const Piece& tileFocused)
+int PlayerMarco::evaluateDirection(const Position& currentPosition, const Position& direction, const Piece& tileFocused)
 {
-	double retVal{ 1.0 };
-	//~ Piece emptyTile{ Piece::none };
-	//~ Piece blockedTile{ Piece::none };
+	int retVal{ 0 };
+	Piece emptyTile{ Piece::none };
 
-	//~ int maxReach {1};
-	//~ int numOppInReach {0};
-	//~ for (; maxReach < 5; ++maxReach)
-	for (int factor{1}; factor < 5; ++factor)
-	{
-		Position positionToBeChecked{ currentPosition + factor*direction };
-		if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
 
-		Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
-		if ( tileToBeChecked != tileFocused )
-		{
-			break;
-		}
+	std::vector<Piece> directionSeries{};
 
-		retVal *= 4.0;
+	for (int i{-4}; i<5; ++i) {
+		Position i_Position{ currentPosition + i*direction };
+		directionSeries.push_back( m_board->getPiece(i_Position) );
 	}
 
-	for (int factor{1}; factor < 5; ++factor)
-	{
-		Position positionToBeChecked{ currentPosition - factor*direction };
-		if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
 
-		Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
-		if ( tileToBeChecked != tileFocused ) break;
+	//~ std::cout << '\n';
+	//~ std::cout << currentPosition << '\n';
+	//~ std::cout << direction << '\n';
+	//~ for (auto i: directionSeries){
+		//~ std::cout << i << ' ';
+	//~ }
 
-		retVal *= 4.0;
-	}
+	//~ std::cout << '\n';
+	//~ std::cout << convolveTimeSeries(directionSeries, tileFocused, {emptyTile})["count"] << '\n';
 
-	retVal -= 1.0;
+	std::map<std::string, int> timeSeriesEval { convolveTimeSeries(directionSeries, tileFocused, {emptyTile}) };
+
+	int counts{ timeSeriesEval["count"] };
+	int endpoints{ timeSeriesEval["endpoints"] };
+
+	//~ retVal = 10*counts;
+
+	if (counts < 4) retVal = std::max(10*counts - 5*endpoints, 0);
+	else retVal = 1000;
+
+
+
+
+	//~ for (int factor{1}; factor < 5; ++factor)
+	//~ {
+		//~ Position positionToBeChecked{ currentPosition + factor*direction };
+		//~ if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
+
+		//~ Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
+		//~ if ( tileToBeChecked != tileFocused ) break;
+
+		//~ retVal *= 4.0;
+	//~ }
+	//~ for (int factor{1}; factor < 5; ++factor)
+	//~ {
+		//~ Position positionToBeChecked{ currentPosition - factor*direction };
+		//~ if (! (m_board->tileIsInside(positionToBeChecked)) ) break;
+
+		//~ Piece tileToBeChecked{ m_board->getPiece(positionToBeChecked) };
+		//~ if ( tileToBeChecked != tileFocused ) break;
+
+		//~ retVal *= 4.0;
+	//~ }
+
+	//~ retVal -= 1.0;
 	return retVal;
 }
 
@@ -156,9 +184,7 @@ double PlayerMarco::evaluateDirection(const Position& currentPosition, const Pos
 double PlayerMarco::computePolicyOfPosition(const Position& currentPosition)
 {
 	double retVal{ 0. };
-	double tendency{ 0.51 }; // fraction to go offensively (1) or defensively (0)
-	//~ double defensiveVal{ 0. };
-	//~ double offensiceVal{ 0. };
+	double tendency{ 0.66 }; // fraction to go offensively (1) or defensively (0)
 	Piece ownTile{ m_piece };
 	Piece opponentTile{ };
 
@@ -170,24 +196,49 @@ double PlayerMarco::computePolicyOfPosition(const Position& currentPosition)
 
 
 
-	retVal += getRandomDouble(0., 1.e-5);	// add some unpredictability
+	retVal += getRandomDouble(0., 0.5);	// add some unpredictability
 
-	for (auto direction : directions)
-	{
-		// defensice policy
-		double defensiveVal { evaluateDirection( currentPosition, direction, opponentTile) };
-		//~ retVal += evaluateDirection( currentPosition, direction, opponentTile);
-
-		// offensive policy
-		double offensiceVal { evaluateDirection( currentPosition, direction, ownTile) };
-		//~ retVal += 1.01*evaluateDirection( currentPosition, direction, ownTile);
-
-		retVal += tendency * offensiceVal + (1.-tendency) * defensiveVal;
-
+	// offensive value
+	std::vector<int> offVals{};
+	for (auto direction : directions) {
+		offVals.push_back( evaluateDirection( currentPosition, direction, ownTile) );
 	}
+	std::sort(offVals.begin(), offVals.end());
+
+	int offensiveVal{ offVals[3] + offVals[2] };
+	//~ offensiveVal = *max_element(offVals.begin(), offVals.end());
+
+	// offensive value
+	std::vector<int> defVals{};
+	for (auto direction : directions) {
+		defVals.push_back( evaluateDirection( currentPosition, direction, opponentTile) );
+	}
+	std::sort(defVals.begin(), defVals.end());
+
+	int defensiveVal{ defVals[3] + defVals[2] };
+	//~ defensiveVal = *max_element(defVals.begin(), defVals.end());
+
+
+	//~ if ( (offVals[3] == 40 && ) || () )
+
+	retVal += tendency * offensiveVal + (1.-tendency) * defensiveVal;
+
+	//~ for (auto direction : directions)
+	//~ {
+		//~ // defensice policy
+		//~ int defensiveVal { evaluateDirection( currentPosition, direction, opponentTile) };
+		//~ // retVal += evaluateDirection( currentPosition, direction, opponentTile);
+
+		//~ // offensive policy
+		//~ int offensiveVal { evaluateDirection( currentPosition, direction, ownTile) };
+		//~ // retVal += 1.01*evaluateDirection( currentPosition, direction, ownTile);
+
+		//~ retVal += tendency * offensiveVal + (1.-tendency) * defensiveVal;
+
+	//~ }
 
 	return retVal;
-	//~ return std::max(defensiveVal, offensiceVal);
+	//~ return std::max(defensiveVal, offensiveVal);
 }
 
 
@@ -205,10 +256,8 @@ matrix_t<double> PlayerMarco::computePolicy()
 
 
 	//~ std::cout << '\n';
-	for (int i{0}; i <= i_max ; ++i)
-	{
-		for (int j{0}; j <= j_max; ++j)
-		{
+	for (int i{0}; i <= i_max ; ++i) {
+		for (int j{0}; j <= j_max; ++j) {
     		//~ static double s_frac{ 1. / RAND_MAX };
 			//~ boardPolicy[i][j] += getRandomDouble(0., 0.1);
 			//~ std::cout << getRandomDouble(0., 0.5) << '\n';
@@ -237,11 +286,20 @@ matrix_t<double> PlayerMarco::computePolicy()
 			//~ std::cout << currentTile << ' ';
 			//~ printf("%s ", currentTile);
 			//~ std::cout << boardPolicy[i][j] << ' ';
-			//~ printf("%6.1f ", boardPolicy[i][j]);
+			//~ printf("%6.2f ", boardPolicy[i][j]);
 		}
 		//~ std::cout << '\n';
 	}
 
+
+
+	//~ std::cout << '\n';
+	//~ for (int i{0}; i <= i_max ; ++i) {
+		//~ for (int j{0}; j <= j_max; ++j) {
+			//~ printf("%6.2f ", boardPolicy[i][j]);
+		//~ }
+		//~ std::cout << '\n';
+	//~ }
 
 	return boardPolicy;
 }
@@ -290,6 +348,79 @@ Position matrixMaxPosition(matrix_t<T> matrix)
 
 
 }
+
+
+//----------------------------------------------------------------------
+// comapct way to check whether item appears inside a list and return true if so
+template <typename T>
+bool itemInList (const T item, const std::vector<T>& list)
+{
+	return (std::find(list.begin(), list.end(), item) != list.end());
+}
+
+//----------------------------------------------------------------------
+// evaluate a time series (of types T) for max appearances of a T type item in a window of given length
+// return map with keys:
+//		"count"     : maximum of counts over all windows
+//		"pos"       : position/start of max window
+//		"endpoints" : number of points left and right of window are blocked
+template <typename T>
+std::map<std::string, int> convolveTimeSeries (
+										const std::vector<T>& series,
+										const T               countSymbol,
+										const std::vector<T>& neutralSymbols,
+										const int             windowSize
+									)
+{
+	std::map<std::string, int> resultsDict { {"pos", 0}, {"count", 0} , {"endpoints", 2} };
+
+	int maxIndex{ std::max(static_cast<int>(series.size()) - windowSize, 0) };
+
+	for (int i {0}; i <= maxIndex ; ++i){
+		int i_count{ 0 };
+		int i_numEndpoints{ 0 };
+
+		const std::vector<T>& i_window{ std::vector<T>(series.begin() + i, series.begin() + i + windowSize) };
+
+		for (auto j : i_window) {
+			if (j == countSymbol) {
+				++i_count;
+			}
+			else if (! itemInList(j, neutralSymbols)) {
+				i_count = 0;
+				break;
+			}
+		}
+
+		// check left edge of window
+		if ( i == 0 ) ++i_numEndpoints;
+		else if ( series[i-1] != countSymbol && !itemInList(series[i-1], neutralSymbols) ) ++i_numEndpoints;
+
+		// check right edge of window
+		if ( i == maxIndex ) ++i_numEndpoints;
+		else if ( series[i+windowSize] != countSymbol && !itemInList(series[i+windowSize], neutralSymbols) ) ++i_numEndpoints;
+
+		if (i_count > resultsDict["count"] || (i_count == resultsDict["count"] && i_numEndpoints < resultsDict["endpoints"]) ) {
+			resultsDict["pos"] = i;
+			resultsDict["count"] = i_count;
+			resultsDict["endpoints"] = i_numEndpoints;	// reset and redetermine below
+		}
+	}
+
+	return resultsDict;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }// End namespace FIAR
