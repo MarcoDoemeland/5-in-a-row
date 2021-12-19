@@ -184,7 +184,7 @@ int PlayerMarco::evaluateDirection(const Position& currentPosition, const Positi
 double PlayerMarco::computePolicyOfPosition(const Position& currentPosition)
 {
 	double retVal{ 0. };
-	double tendency{ 0.66 }; // fraction to go offensively (1) or defensively (0)
+	double tendency{ 0.4 }; // fraction to go offensively (1) or defensively (0)
 	Piece ownTile{ m_piece };
 	Piece opponentTile{ };
 
@@ -221,7 +221,7 @@ double PlayerMarco::computePolicyOfPosition(const Position& currentPosition)
 
 	//~ if ( (offVals[3] == 40 && ) || () )
 
-	retVal += tendency * offensiveVal + (1.-tendency) * defensiveVal;
+	retVal += tendency * offensiveVal*offensiveVal + (1.-tendency) * defensiveVal*defensiveVal;
 
 	//~ for (auto direction : directions)
 	//~ {
