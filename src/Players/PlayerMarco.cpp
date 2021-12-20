@@ -364,53 +364,105 @@ bool itemInList (const T item, const std::vector<T>& list)
 //		"count"     : maximum of counts over all windows
 //		"pos"       : position/start of max window
 //		"endpoints" : number of points left and right of window are blocked
-template <typename T>
-std::map<std::string, int> convolveTimeSeries (
-										const std::vector<T>& series,
-										const T               countSymbol,
-										const std::vector<T>& neutralSymbols,
-										const int             windowSize
-									)
+//~ template <typename T>
+//~ std::map<std::string, int> convolveTimeSeries (
+										//~ const std::vector<T>& series,
+										//~ const T               countSymbol,
+										//~ const std::vector<T>& neutralSymbols,
+										//~ const int             windowSize
+									//~ )
 {
 	std::map<std::string, int> resultsDict { {"pos", 0}, {"count", 0} , {"endpoints", 2} };
 
-	int maxIndex{ std::max(static_cast<int>(series.size()) - windowSize, 0) };
+	int seriesLength { static_cast<int>(series.size()) };
+	std::vector<double> valArray (seriesLength );
 
-	for (int i {0}; i <= maxIndex ; ++i){
-		int i_count{ 0 };
-		int i_numEndpoints{ 0 };
+	for (int i {0}; i < seriesLength; ++i) {
+		if (series[i] != countSymbol) continue;
 
-		const std::vector<T>& i_window{ std::vector<T>(series.begin() + i, series.begin() + i + windowSize) };
-
-		for (auto j : i_window) {
-			if (j == countSymbol) {
-				++i_count;
-			}
-			else if (! itemInList(j, neutralSymbols)) {
-				i_count = 0;
-				break;
-			}
-		}
-
-		// check left edge of window
-		if ( i == 0 ) ++i_numEndpoints;
-		else if ( series[i-1] != countSymbol && !itemInList(series[i-1], neutralSymbols) ) ++i_numEndpoints;
-
-		// check right edge of window
-		if ( i == maxIndex ) ++i_numEndpoints;
-		else if ( series[i+windowSize] != countSymbol && !itemInList(series[i+windowSize], neutralSymbols) ) ++i_numEndpoints;
-
-		if (i_count > resultsDict["count"] || (i_count == resultsDict["count"] && i_numEndpoints < resultsDict["endpoints"]) ) {
-			resultsDict["pos"] = i;
-			resultsDict["count"] = i_count;
-			resultsDict["endpoints"] = i_numEndpoints;	// reset and redetermine below
+		for (int j {std::max(i-windowSize+1,0)}; j <= i; ++j) {
+			++valArray[j];
 		}
 	}
 
+	for (int i {0}; i < seriesLength; ++i) {
+		if (itemInList(series[i], neutralSymbols) || series[i] == countSymbol) continue;
+
+		for (int j {std::max(i-windowSize+1,0)}; j <= i; ++j) {
+			valArray[j] = 0.;
+		}
+
+		if (i >= windowSize) valArray[i-windowSize] -= 0.1;
+		if (i < seriesLength-1) valArray[i+1] -= 0.1;
+	}
+
+	valArray[0] -= 0.1;
+	valArray[seriesLength-windowSize-1] -= 0.1;
+
+	auto maxIt = std::max_element(valArray.begin(), valArray.end());
+
+	int maxPos { static_cast<int>(std::distance(valArray.begin(), maxIt)) };
+	int maxVal { static_cast<int>(valArray[maxPos]+0.5) };
+	int maxEP { static_cast<int>(10*(maxVal-valArray[maxPos])+0.5) };
+
+	resultsDict["pos"] = maxPos;
+	resultsDict["count"] = maxVal;
+	resultsDict["endpoints"] = maxEP;
+
 	return resultsDict;
 }
+//~ {
+	//~ std::map<std::string, int> resultsDict { {"pos", 0}, {"count", 0} , {"endpoints", 2} };
+
+	//~ int maxIndex{ std::max(static_cast<int>(series.size()) - windowSize, 0) };
+
+	//~ int currentBestPos {0};
+	//~ int currentBestCount {0};
+	//~ int currentBestEndpoints {2};
+
+	//~ for (int i {0}; i <= maxIndex ; ++i){
+		//~ int i_count{ 0 };
+		//~ int i_numEndpoints{ 0 };
+
+		//~ const std::vector<T>& i_window{ std::vector<T>(series.begin() + i, series.begin() + i + windowSize) };
+
+		//~ for (auto j : i_window) {
+			//~ if (itemInList(j, neutralSymbols)) {
+				//~ continue;
+			//~ }
+			//~ else if (j == countSymbol) {
+				//~ ++i_count;
+			//~ }
+			//~ else {
+				//~ i_count = 0;
+				//~ break;
+			//~ }
+		//~ }
 
 
+		//~ // check left edge of window
+		//~ if ( i == 0 ) ++i_numEndpoints;
+		//~ else if ( series[i-1] != countSymbol && !itemInList(series[i-1], neutralSymbols) ) ++i_numEndpoints;
+
+		//~ // check right edge of window
+		//~ if ( i == maxIndex ) ++i_numEndpoints;
+		//~ else if ( series[i+windowSize] != countSymbol && !itemInList(series[i+windowSize], neutralSymbols) ) ++i_numEndpoints;
+
+		//~ if (i_count > currentBestCount || (i_count == currentBestCount && i_numEndpoints < currentBestEndpoints) ) {
+			//~ currentBestPos = i;
+			//~ currentBestCount = i_count;
+			//~ currentBestEndpoints = i_numEndpoints;
+		//~ }
+
+
+	//~ }
+
+	//~ resultsDict["pos"] = currentBestPos;
+	//~ resultsDict["count"] = currentBestCount;
+	//~ resultsDict["endpoints"] = currentBestEndpoints;
+
+	//~ return resultsDict;
+//~ }
 
 
 
