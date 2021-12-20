@@ -72,9 +72,9 @@ private:
     bool lookForWinSequence1(Position& pos);
     // Looking for a deadly sequence of the 1st order (****_, ***_*, **_**, *_***, _****)
     bool lookForDeadlySequence1(Position& pos);
-    // Looking for a win sequence of the 2nd order (_***__, _**_*_, _*_**_, __***_)
+    // Looking for a win sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
     bool lookForWinSequence2(Position& pos);
-    // Looking for a deadly sequence of the 2nd order (_***__, _**_*_, _*_**_, __***_)
+    // Looking for a deadly sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
     bool lookForDeadlySequence2(Position& pos);
     // Looking for a win sequence of the 3rd order (free _**, *_* or **_ combined with free _**, *_* or **_)
     bool lookForWinSequence3(Position& pos);
@@ -85,12 +85,18 @@ private:
     // Looking for a spot where a single stone is placed and giving him a friend
     bool lookForBuildPair(Position& pos);
 
+    // S-form TODO!!!
+    // _x_x
+    // x_x_
+
     // Looking for a linear sequence
     bool lookForLinearSequence(Position& pos);
     // Reading a sequence (limits must not be empty)
     bool validSequenceFound(std::size_t inX, std::size_t inY, Position& pos);
     // Reading a sequence (limits must be free)
     bool freeValidSequenceFound(std::size_t inX, std::size_t inY, Position& pos);
+    // Reading a sequence (alternating ref and void)
+    bool alternateSeqFound(std::size_t inX, std::size_t inY, Position& pos);
     // Reading a sequence (limits must be free, evaluation must return symetrical data)
     bool sequenceType3Found(std::size_t inX, std::size_t inY, Position& pos);
     // Reading a sequence (limits must be free, evaluation returns single point)
@@ -128,6 +134,11 @@ private:
     // Logging stuff
     inline void log(const std::string& str);
 
+    // Rounds counter
+    int m_rndCnt{ 0 };
+    // Random counter
+    int m_ranCnt{ 0 };
+
     // Dimensions of the board
     std::size_t m_boardW{ 0 };
     std::size_t m_boardH{ 0 };
@@ -145,7 +156,8 @@ private:
     LineStatus m_refStatus;
 
     // Comparison function
-    bool (PlayerJoseph::*m_compFunc)(Piece) const{ nullptr };
+    bool (PlayerJoseph::*m_inversFunc)(Piece) const{ nullptr };
+    bool (PlayerJoseph::*m_targetFunc)(Piece) const{ nullptr };
     // LINEAR SEQUENCE SEARCH
     // Increment functions
     int (PlayerJoseph::*m_xIncFunc)(int) const{ nullptr };
@@ -164,8 +176,8 @@ private:
     bool (PlayerJoseph::*m_trackFunc)(std::size_t inX, std::size_t inY, Position& pos){ nullptr };
 
     // Logging
-    //bool m_enableLog{true};
     bool m_enableLog{false};
+    //bool m_enableLog{false};
     std::ofstream m_fileStream;
 };
 

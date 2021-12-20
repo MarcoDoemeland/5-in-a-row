@@ -11,11 +11,16 @@ PlayerJoseph::PlayerJoseph(const Board* board, Piece piece)
     , m_boardH{ board->getSizeY() }{
 
     if(m_enableLog) m_fileStream = std::ofstream("JosephBotLog.txt");
+
+    //if(m_enableLog) m_fileStream << "Board size x: " << m_boardW << '\n';
+    //if(m_enableLog) m_fileStream << "Board size y: " << m_boardH << '\n';
 }
 
 // Destructor
 PlayerJoseph::~PlayerJoseph(){
-
+    if(m_enableLog) m_fileStream << "Rounds: " << m_rndCnt << '\n';
+    if(m_enableLog) m_fileStream << "Randomized count: " << m_ranCnt << '\n';
+    if(m_enableLog) m_fileStream << "Randomized percentage: " << (m_ranCnt * 100) / m_rndCnt << '\n';
 }
 
 // Function to use to make an action
@@ -23,15 +28,16 @@ Position PlayerJoseph::doAction(){
     // Position where the stone has to be placed
     Position pos;
     log("NewRound:");
+    ++m_rndCnt;
 
     // Looking for a win sequence of the 1st order (****_, ***_*, **_**, *_***, _****)
     if(lookForWinSequence1(pos)) std::cout << pos << '\n';
     // Looking for a deadly sequence of the 1st order (****_, ***_*, **_**, *_***, _****)
     else if(lookForDeadlySequence1(pos)) std::cout << pos << '\n';
 
-    // Looking for a win sequence of the 2nd order (_***__, _**_*_, _*_**_, __***_)
+    // Looking for a win sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
     else if(lookForWinSequence2(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 2nd order (_***__, _**_*_, _*_**_, __***_)
+    // Looking for a deadly sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
     else if(lookForDeadlySequence2(pos)) std::cout << pos << '\n';
 
     // Looking for a win sequence of the 3rd order
@@ -51,6 +57,7 @@ Position PlayerJoseph::doAction(){
             pos = Position(static_cast<std::size_t>(getRandomInt(1, m_boardW)), static_cast<std::size_t>(getRandomInt(1, m_boardH)));
         }while(!m_board->isEmptyAt(pos));
         std::cout << pos << '\n';
+        ++m_ranCnt;
     }
 
     // End of round, jumpline to make the log clearer
@@ -67,7 +74,7 @@ bool PlayerJoseph::lookForWinSequence1(Position& pos){
     // Max count of blank section expected
     m_maxCount = 1;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsAdversary;
+    m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::validSequenceFound;
     // Looking for a linear sequence
@@ -81,40 +88,62 @@ bool PlayerJoseph::lookForDeadlySequence1(Position& pos){
     // Max count of blank section expected
     m_maxCount = 1;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsMine;
+    m_inversFunc = &PlayerJoseph::pieceIsMine;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::validSequenceFound;
     // Looking for a linear sequence
     log("DeadlySeq1 tracking starts...");
     return lookForLinearSequence(pos);
 }
-// Looking for a win sequence of the 2nd order (_***__, _**_*_, _*_**_, __***_)
+// Looking for a win sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
 bool PlayerJoseph::lookForWinSequence2(Position& pos){
     // Size of the sequence
     m_seqSize = 6;
     // Max count of blank section expected
     m_maxCount = 1;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsAdversary;
+    m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::freeValidSequenceFound;// TODO, optimize when one end could be blocked
-    // Looking for a linear sequence
-    log("WinSeq2 tracking starts...");
-    return lookForLinearSequence(pos);
+    // Looking for the type 1
+    log("WinSeq2 t1 tracking starts...");
+    if(lookForLinearSequence(pos)) return true;
+
+    // Size of the sequence
+    m_seqSize = 7;
+    // Comparison method, getting a reference to the corresponding function
+    m_targetFunc = &PlayerJoseph::pieceIsMine;
+    // Sequence searching function, alterning chain
+    m_trackFunc = &PlayerJoseph::alternateSeqFound;
+    // Looking for the type 2
+    log("WinSeq2 t2 tracking starts...");
+    if(lookForLinearSequence(pos)) return true;
+    return false;
 }
-// Looking for a deadly sequence of the 2nd order (_***__, _**_*_, _*_**_, __***_)
+// Looking for a deadly sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
 bool PlayerJoseph::lookForDeadlySequence2(Position& pos){
     // Size of the sequence
     m_seqSize = 6;
     // Max count of blank section expected
     m_maxCount = 1;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsMine;
+    m_inversFunc = &PlayerJoseph::pieceIsMine;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::freeValidSequenceFound;
-    // Looking for a linear sequence
-    log("DeadlySeq2 tracking starts...");
-    return lookForLinearSequence(pos);
+    // Looking for the type 1
+    log("DeadlySeq2 t1 tracking starts...");
+    if(lookForLinearSequence(pos)) return true;
+
+    // Size of the sequence
+    m_seqSize = 7;
+    // Comparison method, getting a reference to the corresponding function
+    m_targetFunc = &PlayerJoseph::pieceIsAdversary;
+    // Sequence searching function, alterning chain
+    m_trackFunc = &PlayerJoseph::alternateSeqFound;
+    // Looking for the type 2
+    log("DeadlySeq2 t2 tracking starts...");
+    if(lookForLinearSequence(pos)) return true;
+    return false;
 }
 // Looking for a win sequence of the 3rd order
 bool PlayerJoseph::lookForWinSequence3(Position& pos){
@@ -125,7 +154,7 @@ bool PlayerJoseph::lookForWinSequence3(Position& pos){
     // Reference line status code
     m_refStatus = line_winIn3;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsAdversary;
+    m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
     //m_trackFunc = &PlayerJoseph::freeValidSequenceFound;// does not fit perfectly (too dramatic)
     m_trackFunc = &PlayerJoseph::sequenceType3Found;
@@ -142,7 +171,7 @@ bool PlayerJoseph::lookForDeadlySequence3(Position& pos){
     // Reference line status code
     m_refStatus = line_loseIn3;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsMine;
+    m_inversFunc = &PlayerJoseph::pieceIsMine;
     // Sequence searching function, sequence with 1 vacancy
     //m_trackFunc = &PlayerJoseph::freeValidSequenceFound;// does not fit perfectly (too dramatic)
     m_trackFunc = &PlayerJoseph::sequenceType3Found;
@@ -158,7 +187,7 @@ bool PlayerJoseph::lookForWinSequence4(Position& pos){
     // Reference line status code
     m_refStatus = line_winIn4;
     // Comparison method, getting a reference to the corresponding function
-    m_compFunc = &PlayerJoseph::pieceIsAdversary;
+    m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::sequenceType3Found;
     // Looking for a linear sequence
@@ -247,7 +276,7 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     m_xIncFunc = &PlayerJoseph::incrementSame;
     m_yIncFunc = &PlayerJoseph::incrementPlus;
     for(std::size_t i{1}; i <= m_boardW; ++i){
-        for(std::size_t j{1}; j <= m_boardH - m_seqSize; ++j){
+        for(std::size_t j{1}; j <= m_boardH - m_seqSize + 1; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
                 if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
                 return true;
@@ -258,8 +287,8 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     m_dir = jodir_d;
     m_xIncFunc = &PlayerJoseph::incrementPlus;
     m_yIncFunc = &PlayerJoseph::incrementPlus;
-    for(std::size_t i{1}; i <= m_boardW - m_seqSize; ++i){
-        for(std::size_t j{1}; j <= m_boardH - m_seqSize; ++j){
+    for(std::size_t i{1}; i <= m_boardW - m_seqSize + 1; ++i){
+        for(std::size_t j{1}; j <= m_boardH - m_seqSize + 1; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
                 if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
                 return true;
@@ -270,7 +299,7 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     m_dir = jodir_x;
     m_xIncFunc = &PlayerJoseph::incrementPlus;
     m_yIncFunc = &PlayerJoseph::incrementSame;
-    for(std::size_t i{1}; i <= m_boardW - m_seqSize; ++i){
+    for(std::size_t i{1}; i <= m_boardW - m_seqSize + 1; ++i){
         for(std::size_t j{1}; j <= m_boardH; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
                 if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
@@ -282,7 +311,7 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     m_dir = jodir_a;
     m_xIncFunc = &PlayerJoseph::incrementPlus;
     m_yIncFunc = &PlayerJoseph::incrementMinus;
-    for(std::size_t i{1}; i <= m_boardW - m_seqSize; ++i){
+    for(std::size_t i{1}; i <= m_boardW - m_seqSize + 1; ++i){
         for(std::size_t j{m_seqSize}; j <= m_boardH; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
                 if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
@@ -301,8 +330,9 @@ bool PlayerJoseph::validSequenceFound(std::size_t inX, std::size_t inY, Position
     s_count = 0;
     for(std::size_t k{0}; k < m_seqSize; ++k){
         m_in = m_board->getPiece(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k));
+        //if(m_enableLog) m_fileStream << "Point check: " << Position(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k)) << '\n';
         // Sequence is broken, no need to go further
-        if((this->*m_compFunc)(m_in)) return false;
+        if((this->*m_inversFunc)(m_in)) return false;
         // Hole in the sequence, decreasing the count, stopping if necessary
         else if(pieceIsNone(m_in)){
             if(++s_count > m_maxCount) return false;
@@ -329,7 +359,7 @@ bool PlayerJoseph::freeValidSequenceFound(std::size_t inX, std::size_t inY, Posi
     for(std::size_t k{1}; k < m_seqSize - 1; ++k){
         m_in = m_board->getPiece(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k));
         // Sequence is broken, no need to go further
-        if((this->*m_compFunc)(m_in)) return false;
+        if((this->*m_inversFunc)(m_in)) return false;
         // Hole in the sequence, decreasing the count, stopping if necessary
         else if(pieceIsNone(m_in)){
             if(++s_count > m_maxCount) return false;
@@ -346,6 +376,30 @@ bool PlayerJoseph::freeValidSequenceFound(std::size_t inX, std::size_t inY, Posi
     pos = evaluatePositions(posDataList);
 
     // Returning the result
+    return true;
+}
+bool PlayerJoseph::alternateSeqFound(std::size_t inX, std::size_t inY, Position& pos){
+    static bool s_target;
+    // The first piece must be filled
+    m_in = m_board->getPiece(inX, inY);
+    // Sequence not initialized, no need to go further
+    if(!(this->*m_targetFunc)(m_in)) return false;
+    s_target = true;
+
+    // Scanning
+    for(std::size_t k{1}; k < m_seqSize; ++k){
+        m_in = m_board->getPiece(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k));
+        // Sequence is broken, no need to go further
+        if((this->*m_inversFunc)(m_in)) return false;
+        // Checking the slot, toggling the target boolean
+        if(s_target && pieceIsNone(m_in)) s_target = false;
+        else if(!s_target && (this->*m_targetFunc)(m_in))  s_target = false;
+        else return false;
+    }
+
+    // Defining the position. Same for odd and even since we start with the target piece
+    pos = Position(inX + (this->*m_xIncFunc)(m_seqSize / 2), inY + (this->*m_yIncFunc)(m_seqSize / 2));
+
     return true;
 }
 // Reading a sequence (limits must be free, evaluation must return symetrical data)
@@ -366,7 +420,7 @@ bool PlayerJoseph::sequenceType3Found(std::size_t inX, std::size_t inY, Position
     for(std::size_t k{1}; k < m_seqSize - 1; ++k){
         m_in = m_board->getPiece(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k));
         // Sequence is broken, no need to go further
-        if((this->*m_compFunc)(m_in)) return false;
+        if((this->*m_inversFunc)(m_in)) return false;
         // Hole in the sequence, decreasing the count, stopping if necessary
         else if(pieceIsNone(m_in)){
             if(++s_count > m_maxCount) return false;
