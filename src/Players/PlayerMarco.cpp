@@ -364,13 +364,13 @@ bool itemInList (const T item, const std::vector<T>& list)
 //		"count"     : maximum of counts over all windows
 //		"pos"       : position/start of max window
 //		"endpoints" : number of points left and right of window are blocked
-//~ template <typename T>
-//~ std::map<std::string, int> convolveTimeSeries (
-										//~ const std::vector<T>& series,
-										//~ const T               countSymbol,
-										//~ const std::vector<T>& neutralSymbols,
-										//~ const int             windowSize
-									//~ )
+template <typename T>
+std::map<std::string, int> convolveTimeSeries (
+										const std::vector<T>& series,
+										const T               countSymbol,
+										const std::vector<T>& neutralSymbols,
+										const int             windowSize
+									)
 {
 	std::map<std::string, int> resultsDict { {"pos", 0}, {"count", 0} , {"endpoints", 2} };
 
