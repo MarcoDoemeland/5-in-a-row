@@ -230,8 +230,8 @@ private:
     bool (PlayerJoseph::*m_trackFunc)(std::size_t inX, std::size_t inY, Position& pos){ nullptr };
 
     // Logging
-    bool m_enableLog{true};
-    //bool m_enableLog{false};
+    //bool m_enableLog{true};
+    bool m_enableLog{false};
     std::ofstream m_fileStream;
 };
 

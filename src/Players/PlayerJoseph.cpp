@@ -672,6 +672,11 @@ bool PlayerJoseph::sequenceTypeVFound(std::size_t inX, std::size_t inY, Position
 // Reading a sequence (a L-shape with free spots around)
 bool PlayerJoseph::sequenceTypeLFound(std::size_t inX, std::size_t inY, Position& pos){
 
+    // Dummy TODO
+    inX = 0;
+    inY = 0;
+    if(inX && inY) pos = Position(inX, inY);
+
 
     return false;
 }
