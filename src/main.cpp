@@ -2,108 +2,108 @@
 #include <cstdlib>	// for std::exit
 #include <iostream>
 #include <stdexcept>
-
+#include <unistd.h>	// for getopt
 
 #include "Game.h"
 #include "Printer.h"
 #include "Defines.h"
 
+
+
 int main(int argc, char* argv[]){
     // Displaying the arguments
-    for(int i{ 0 }; i < argc; ++i) std::cout << argv[i] << '\n';
+    //~ for(int i{ 0 }; i < argc; ++i) std::cout << argv[i] << '\n';
 
-    try{
-        // Trying to build the game. It might throw an exception.
-        FIAR::Game game;
-        // It worked, then starting
-        game.start();
-    }
-    catch(const std::runtime_error& exception){
-        std::cerr << "Error: " << exception.what() << '\n';
-        return 1;
-    }
+
+
+	std::string firstPlayerName {};
+	std::string secondPlayerName {};
+	int numGames { 1 };
+	int interactiveMode { 0 };	// 0 : simulate to end; 1 : halt after each game; 2 : halt after each round
+
+
+    //~ for (int i{ 0 }; i < argc; ++i) {
+
+	//~ }
+	int opt;
+	while ((opt = getopt(argc, argv, "iIst:p:")) != -1) {
+		//~ std::cout << opt << '\n';
+		switch (opt) {
+			case 'i':
+				//~ std::cout << 'i' << '\n';
+				interactiveMode = 1;	// halt after each game
+				continue;
+
+			case 'I':
+				//~ std::cout << 'I' << '\n';
+				interactiveMode = 2;	// halt after each round
+				continue;
+
+			case 's':
+				//~ std::cout << 's' << '\n';
+				//~ if (optarg) {
+				numGames = 1;
+				//~ }
+				continue;
+
+			case 't':
+				//~ std::cout << 't' << '\n';
+				//~ std::cout << (int) optarg << '\n';
+				//~ std::cout << atoi(optarg) << '\n';
+				//~ if (optarg) {
+					//~ numGames = static_cast<int>(*optarg);
+				numGames = atoi(optarg);
+				//~ }
+				continue;
+
+			case 'p':
+				//~ std::cout << 'p' << '\n';
+				//~ std::cout << (int) optarg << '\n';
+				//~ std::cout << atoi(optarg) << '\n';
+				if (firstPlayerName.empty())  {
+					//~ numGames = static_cast<int>(*optarg);
+					firstPlayerName = static_cast<std::string>(optarg);
+				}
+				else if (secondPlayerName.empty())  {
+					secondPlayerName = static_cast<std::string>(optarg);
+				}
+				else {
+					std::cerr << "Error: Only 2 Players are allowed!" << '\n';
+					return 1;
+				}
+				continue;
+
+			default: /* '?' */
+				fprintf(stderr, "Usage: %s [-i/I] [-s] [-t] numGames [-p] playerName\n",
+						argv[0]);
+				exit(EXIT_FAILURE);
+
+			case -1:
+				break;
+		}
+		break;
+	}
+
+
+	//~ std::cout << "Player 1: " << firstPlayerName << '\n';
+	//~ std::cout << "Player 2: " << secondPlayerName << '\n';
+	//~ std::cout << "Num Games: " << numGames << '\n';
+	//~ std::cout << "Interactive: " << interactiveMode << '\n';
+
+	//~ std::exit(1);
+
+	try{
+		// Trying to build the game. It might throw an exception.
+		FIAR::Game game;
+		// It worked, then starting
+		game.start();
+	}
+	catch(const std::runtime_error& exception){
+		std::cerr << "Error: " << exception.what() << '\n';
+		return 1;
+	}
+
 
 	return 0;
 }
-/*int mainDump(){
-    // call a function in another file
-    //~ myPrintHelloMake();
 
-    //~ std::string a {"huhu"};
-
-    //~ std::cout << typeid("huhuaaasdasdasd asdasd").name() << '\n';
-
-    //~ int a { 3 << 1 };
-    //~ std::cout << a << '\n';
-    //~ std::cout << testy(2) << '\n';
-    //~ std::cout << blubb << '\n';
-    //~ return 0;
-
-    //~ std::cerr << "test" << '\n';
-    //~ std::cerr << "blargh";
-    //~ std::cout << "hi" << '\n';
-    //~ std::exit(1);
-    //~ assert(-1 > 0.0);
-    //~ std::cout << "huhu" << '\n';
-    //~ return 0;
-    //~ std::abort();
-
-    //~ void a;
-
-    FIAR::Printer printer;
-    FIAR::Board board ( FIAR::g_boardSizeX, FIAR::g_boardSizeY, FIAR::g_defaultSymbol );
-    //FIAR::PlayerHuman player_1{ &board, "Guy XY" };
-    //FIAR::PlayerRandom player_2{ &board };
-    //FIAR::Game game ( &board, &player_1, &player_2, &printer );
-
-    //~ std::cout << typeid(player_1).name() << '\n';
-    //~ std::cout << ( 7 & 1) << '\n';
-    //~ return 0;
-
-    //~ board.array[0][0] = 'x';
-    //~ board.array[4][7] = 'x';
-    //~ board.array[1][1] = 'x';
-
-    //~ std::vector<std::vector<int>> a;
-
-    //~ std::vector<int> b {1,2,3};
-    //~ a.push_back( b );
-    //~ a.push_back( b );
-
-    //~ a.insert( a.end(), b.begin(), b.end() );
-
-    //~ printer.print_array( a) );
-    //~ for (auto i : a)
-    //~ {
-        //~ for (auto j : i)
-        //~ {
-            //~ std::cout << j << " ";
-        //~ }
-        //~ std::cout << std::endl;
-
-    //~ }
-    //~ return 0;
-
-    //~ if (a.empty())
-    //~ {
-        //~ std::cout << "yooo" << std::endl;
-    //~ }
-    //~ return 0;
-
-    //~ field.resize(R);
-    //~ mat.resize(R, std::vector<int>(C));
-    //~ for (int i = 0 ; i < R ; ++i) {
-        //~ field[i].resize(C);
-    //~ }
-
-    //~ std::cout << boarda.size() << std::endl;
-    //~ std::cout << boarda[0].size() << std::endl;
-    //~ std::cout << "'" << boarda[0][0] << "'" << std::endl;
-
-    //~ std::cout << "huhu" << std::endl;
-    //~ std::cout << board.size_x << std::endl;
-    //~ std::cout << board.size_y << std::endl;
-    //~ std::cout << board.array[0] << std::endl;
-    //~ std::cout << board.array[0][0] << std::endl;
-
-}*/
