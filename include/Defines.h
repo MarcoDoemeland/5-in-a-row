@@ -30,7 +30,8 @@ enum Direction{
 enum class Piece{
     none,
     player1,
-    player2
+    player2,
+    outside,
 };
 
 struct WinningSequence{
@@ -52,6 +53,7 @@ struct WinningSequence{
 extern const std::size_t g_boardSizeX;
 extern const std::size_t g_boardSizeY;
 extern const char g_defaultSymbol;
+extern const char g_outsideSymbol;
 extern const char g_player1Symbol;
 extern const char g_player2Symbol;
 

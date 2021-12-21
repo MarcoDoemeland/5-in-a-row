@@ -132,7 +132,7 @@ matrix_t<double> PlayerDefensive::computePolicy()
 	//~ std::cout << '\n';
 	for (int i{0}; i <= i_max ; ++i)
 	{
-		for (int j{0}; j < j_max; ++j)
+		for (int j{0}; j <= j_max; ++j)
 		{
     		//~ static double s_frac{ 1. / RAND_MAX };
 			boardPolicy[i][j] += getRandomDouble(0., 0.5);

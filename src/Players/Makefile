@@ -5,3 +5,6 @@ parentdir:
 
 clean:
 	@cd .. && make clean --no-print-directory
+
+run:
+	@cd .. && make run --no-print-directory
