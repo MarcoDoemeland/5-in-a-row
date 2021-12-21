@@ -39,6 +39,8 @@ $(TARGET): $(OBJECTS)
 
 .PHONY: all build clean debug release info
 
+run:
+	./$(TARGET)
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
