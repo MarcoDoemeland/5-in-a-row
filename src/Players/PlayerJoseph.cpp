@@ -12,15 +12,16 @@ PlayerJoseph::PlayerJoseph(const Board* board, Piece piece)
 
     if(m_enableLog) m_fileStream = std::ofstream("JosephBotLog.txt");
 
-    //if(m_enableLog) m_fileStream << "Board size x: " << m_boardW << '\n';
-    //if(m_enableLog) m_fileStream << "Board size y: " << m_boardH << '\n';
+    log("Board size x:", m_boardW);
+    log("Board size y:", m_boardH);
 }
 
 // Destructor
 PlayerJoseph::~PlayerJoseph(){
-    if(m_enableLog) m_fileStream << "Rounds: " << m_rndCnt << '\n';
-    if(m_enableLog) m_fileStream << "Randomized count: " << m_ranCnt << '\n';
-    if(m_enableLog) m_fileStream << "Randomized percentage: " << (m_ranCnt * 100) / m_rndCnt << '\n';
+    log("Rounds:", m_rndCnt);
+    log("Errors:", m_errCnt);
+    log("Randomized count:", m_ranCnt);
+    log("Randomized percentage:", (m_ranCnt * 100) / m_rndCnt);
 }
 
 // Function to use to make an action
@@ -30,14 +31,14 @@ Position PlayerJoseph::doAction(){
     log("NewRound:");
     ++m_rndCnt;
 
-    // Looking for a win sequence of the 1st order (****_, ***_*, **_**, *_***, _****)
+    // Looking for a win sequence of the 1st order
     if(lookForWinSequence1(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 1st order (****_, ***_*, **_**, *_***, _****)
+    // Looking for a deadly sequence of the 1st order
     else if(lookForDeadlySequence1(pos)) std::cout << pos << '\n';
 
-    // Looking for a win sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
+    // Looking for a win sequence of the 2nd order
     else if(lookForWinSequence2(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
+    // Looking for a deadly sequence of the 2nd order
     else if(lookForDeadlySequence2(pos)) std::cout << pos << '\n';
 
     // Looking for a win sequence of the 3rd order
@@ -47,6 +48,8 @@ Position PlayerJoseph::doAction(){
 
     // Looking for a spot where a win sequence of the 3rd order can be placed
     else if(lookForWinSequence4(pos)) std::cout << pos << '\n';
+    // Looking for a deadly sequence of the 4th order
+    else if(lookForDeadlySequence4(pos)) std::cout << pos << '\n';
 
     // Looking for a spot where a single stone is placed and giving him a friend
     else if(lookForBuildPair(pos)) std::cout << pos << '\n';
@@ -60,6 +63,12 @@ Position PlayerJoseph::doAction(){
         ++m_ranCnt;
     }
 
+    // Logging the position and possible errors
+    log("Playing", pos);
+    if(!m_board->isEmptyAt(pos)){
+        log("Fatal error!!! Position already occupied");
+        ++m_errCnt;
+    }
     // End of round, jumpline to make the log clearer
     log("");
 
@@ -95,8 +104,12 @@ bool PlayerJoseph::lookForDeadlySequence1(Position& pos){
     log("DeadlySeq1 tracking starts...");
     return lookForLinearSequence(pos);
 }
-// Looking for a win sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
+// Looking for a win sequence of the 2nd order
+//  type 1: _***__, _**_*_, _*_**_, __***_,
+//  type 2: *_*_*_*,
+//  type 3: double type 1 blocked at one side
 bool PlayerJoseph::lookForWinSequence2(Position& pos){
+    // Looking for the type 1:
     // Size of the sequence
     m_seqSize = 6;
     // Max count of blank section expected
@@ -105,23 +118,31 @@ bool PlayerJoseph::lookForWinSequence2(Position& pos){
     m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::freeValidSequenceFound;// TODO, optimize when one end could be blocked
-    // Looking for the type 1
     log("WinSeq2 t1 tracking starts...");
     if(lookForLinearSequence(pos)) return true;
 
+    // Looking for the type 2:
     // Size of the sequence
     m_seqSize = 7;
     // Comparison method, getting a reference to the corresponding function
     m_targetFunc = &PlayerJoseph::pieceIsMine;
     // Sequence searching function, alterning chain
     m_trackFunc = &PlayerJoseph::alternateSeqFound;
-    // Looking for the type 2
     log("WinSeq2 t2 tracking starts...");
     if(lookForLinearSequence(pos)) return true;
+
+    // Looking for the type 3:
+
+    // TODO
+
     return false;
 }
-// Looking for a deadly sequence of the 2nd order (type 1: _***__, _**_*_, _*_**_, __***_, type 2: *_*_*_*)
+// Looking for a win sequence of the 2nd order
+//  type 1: _***__, _**_*_, _*_**_, __***_,
+//  type 2: *_*_*_*,
+//  type 3: double type 1 blocked at one side
 bool PlayerJoseph::lookForDeadlySequence2(Position& pos){
+    // Looking for the type 1:
     // Size of the sequence
     m_seqSize = 6;
     // Max count of blank section expected
@@ -130,19 +151,23 @@ bool PlayerJoseph::lookForDeadlySequence2(Position& pos){
     m_inversFunc = &PlayerJoseph::pieceIsMine;
     // Sequence searching function, sequence with 1 vacancy
     m_trackFunc = &PlayerJoseph::freeValidSequenceFound;
-    // Looking for the type 1
     log("DeadlySeq2 t1 tracking starts...");
     if(lookForLinearSequence(pos)) return true;
 
+    // Looking for the type 2:
     // Size of the sequence
     m_seqSize = 7;
     // Comparison method, getting a reference to the corresponding function
     m_targetFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, alterning chain
     m_trackFunc = &PlayerJoseph::alternateSeqFound;
-    // Looking for the type 2
     log("DeadlySeq2 t2 tracking starts...");
     if(lookForLinearSequence(pos)) return true;
+
+    // Looking for the type 3:
+
+    // TODO
+
     return false;
 }
 // Looking for a win sequence of the 3rd order
@@ -153,10 +178,12 @@ bool PlayerJoseph::lookForWinSequence3(Position& pos){
     m_maxCount = 1;
     // Reference line status code
     m_refStatus = line_winIn3;
-    // Comparison method, getting a reference to the corresponding function
+    // Comparison methods, getting a reference to the corresponding function
+    m_targetFunc = &PlayerJoseph::pieceIsMine;
     m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
     //m_trackFunc = &PlayerJoseph::freeValidSequenceFound;// does not fit perfectly (too dramatic)
+    //m_trackFunc = &PlayerJoseph::sequenceType3Found_old;// Half blind
     m_trackFunc = &PlayerJoseph::sequenceType3Found;
     // Looking for a linear sequence
     log("WinSeq3 tracking starts...");
@@ -170,29 +197,79 @@ bool PlayerJoseph::lookForDeadlySequence3(Position& pos){
     m_maxCount = 1;
     // Reference line status code
     m_refStatus = line_loseIn3;
-    // Comparison method, getting a reference to the corresponding function
+    // Comparison methods, getting a reference to the corresponding function
+    m_targetFunc = &PlayerJoseph::pieceIsAdversary;
     m_inversFunc = &PlayerJoseph::pieceIsMine;
     // Sequence searching function, sequence with 1 vacancy
     //m_trackFunc = &PlayerJoseph::freeValidSequenceFound;// does not fit perfectly (too dramatic)
+    //m_trackFunc = &PlayerJoseph::sequenceType3Found_old;// Half blind
     m_trackFunc = &PlayerJoseph::sequenceType3Found;
     log("DeadlySeq3 tracking starts...");
     return lookForLinearSequence(pos);
 }
-// Looking for a spot where a win sequence of the 3rd order can be placed
+// Looking for a win sequence of the 4th order (V or L-shape)
 bool PlayerJoseph::lookForWinSequence4(Position& pos){
     // Size of the sequence
-    m_seqSize = 5;
+    m_seqSize = 4;
+    //m_seqSize = 5;
     // Max count of blank section expected
-    m_maxCount = 1;
+    //m_maxCount = 1;
     // Reference line status code
-    m_refStatus = line_winIn4;
+    //m_refStatus = line_winIn4;
+    // Comparison method, getting a reference to the corresponding function
+    m_targetFunc = &PlayerJoseph::pieceIsMine;
     // Comparison method, getting a reference to the corresponding function
     m_inversFunc = &PlayerJoseph::pieceIsAdversary;
     // Sequence searching function, sequence with 1 vacancy
-    m_trackFunc = &PlayerJoseph::sequenceType3Found;
-    // Looking for a linear sequence
-    log("WinSeq4 tracking starts...");
-    return lookForLinearSequence(pos);
+    //m_trackFunc = &PlayerJoseph::sequenceType3Found;
+    //return lookForLinearSequence(pos);
+
+    // Looking for a sequence:
+    // Sequence searching function, free area with a V-shape
+    m_trackFunc = &PlayerJoseph::sequenceTypeVFound;
+    log("WinSeq4 type V tracking starts...");
+    if(lookFor2DSequence(pos)) return true;
+    // Sequence searching function, free area with a L-shape
+    m_trackFunc = &PlayerJoseph::sequenceTypeLFound;
+    log("WinSeq4 type L tracking starts...");
+    if(lookFor2DSequence(pos)) return true;
+
+    // No sequence found
+    return false;
+}
+// Looking for a deadly sequence of the 4th order (V or L-shape)
+bool PlayerJoseph::lookForDeadlySequence4(Position& pos){
+    // Size of the sequence
+    m_seqSize = 4;
+    // Max count of inverse sections expected
+    //m_maxCount = 1;
+    // Comparison method, getting a reference to the corresponding function
+    m_targetFunc = &PlayerJoseph::pieceIsAdversary;
+    // Comparison method, getting a reference to the corresponding function
+    m_inversFunc = &PlayerJoseph::pieceIsMine;
+
+    // Looking for a sequence:
+    // Sequence searching function, free area with a V-shape
+    m_trackFunc = &PlayerJoseph::sequenceTypeVFound;
+    log("DeadlySeq4 type V tracking starts...");
+    if(lookFor2DSequence(pos)) return true;
+    // Sequence searching function, free area with a L-shape
+    m_trackFunc = &PlayerJoseph::sequenceTypeLFound;
+    log("DeadlySeq4 type L tracking starts...");
+    if(lookFor2DSequence(pos)) return true;
+
+    // No sequence found
+    return false;
+}
+// Looking for a spot where a win sequence of the 4th order (v-shape) can be placed
+bool PlayerJoseph::lookForWinSequence5(Position& pos){
+
+    // Dummy
+    pos = Position(1, 1);
+
+    // TODO
+
+    return false;
 }
 // Looking for a spot where a single stone is placed and giving him a friend
 bool PlayerJoseph::lookForBuildPair(Position& pos){
@@ -278,7 +355,7 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     for(std::size_t i{1}; i <= m_boardW; ++i){
         for(std::size_t j{1}; j <= m_boardH - m_seqSize + 1; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
-                if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
+                log("Sequence found:", pos);
                 return true;
             }
         }
@@ -290,7 +367,7 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     for(std::size_t i{1}; i <= m_boardW - m_seqSize + 1; ++i){
         for(std::size_t j{1}; j <= m_boardH - m_seqSize + 1; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
-                if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
+                log("Sequence found:", pos);
                 return true;
             }
         }
@@ -302,7 +379,7 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     for(std::size_t i{1}; i <= m_boardW - m_seqSize + 1; ++i){
         for(std::size_t j{1}; j <= m_boardH; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
-                if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
+                log("Sequence found:", pos);
                 return true;
             }
         }
@@ -314,13 +391,28 @@ bool PlayerJoseph::lookForLinearSequence(Position& pos){
     for(std::size_t i{1}; i <= m_boardW - m_seqSize + 1; ++i){
         for(std::size_t j{m_seqSize}; j <= m_boardH; ++j){
             if((this->*m_trackFunc)(i, j, pos)){
-                if(m_enableLog) m_fileStream << "Sequence found: " << pos << '\n';
+                log("Sequence found:", pos);
                 return true;
             }
         }
     }
 
     log("Look for linear sequence: no sequence found.");
+    // No sequence found, leaving
+    return false;
+}
+// Scanning the board calling the appropriate tracking function
+bool PlayerJoseph::lookFor2DSequence(Position& pos){
+    for(std::size_t i{ m_seqSize }; i <= m_boardW - m_seqSize + 1; ++i){
+        for(std::size_t j{ m_seqSize }; j <= m_boardH - m_seqSize + 1; ++j){
+            if((this->*m_trackFunc)(i, j, pos)){
+                log("Sequence found:", pos);
+                return true;
+            }
+        }
+    }
+
+    log("Look for 2D sequence: no sequence found.");
     // No sequence found, leaving
     return false;
 }
@@ -403,7 +495,7 @@ bool PlayerJoseph::alternateSeqFound(std::size_t inX, std::size_t inY, Position&
     return true;
 }
 // Reading a sequence (limits must be free, evaluation must return symetrical data)
-bool PlayerJoseph::sequenceType3Found(std::size_t inX, std::size_t inY, Position& pos){
+bool PlayerJoseph::sequenceType3Found_old(std::size_t inX, std::size_t inY, Position& pos){
     static std::size_t s_count;
     s_count = 0;
     // Vector containing positions to analyze
@@ -434,10 +526,10 @@ bool PlayerJoseph::sequenceType3Found(std::size_t inX, std::size_t inY, Position
     // If we came to this point, the ideal place for the stone has to be defined
     for(PosData& posData : posDataList){
         lookAround(posData);
-        if(posData.m_codeX == m_refStatus
-                || posData.m_codeY == m_refStatus
-                || posData.m_codeD == m_refStatus
-                || posData.m_codeA == m_refStatus){
+        if(posData.m_codeX <= m_refStatus
+                || posData.m_codeY <= m_refStatus
+                || posData.m_codeD <= m_refStatus
+                || posData.m_codeA <= m_refStatus){
             pos = Position(posData.m_x, posData.m_y);
             return true;
         }
@@ -446,36 +538,161 @@ bool PlayerJoseph::sequenceType3Found(std::size_t inX, std::size_t inY, Position
     // Returning the result
     return false;
 }
+// Reading a sequence (limits must be not inverse, evaluation shall be <= reference)
+bool PlayerJoseph::sequenceType3Found(std::size_t inX, std::size_t inY, Position& pos){
+    static std::size_t s_count;
+    s_count = 0;
+    // Vector containing positions to analyze
+    std::vector<PosData> posDataList;
+
+    // Checking first position
+    m_in = m_board->getPiece(inX, inY);
+    if((this->*m_inversFunc)(m_in)) return false;
+    else if(pieceIsNone(m_in))
+        posDataList.push_back(getEmptyPosDataAt(inX, inY));
+
+    // Checking last position
+    m_in = m_board->getPiece(inX + (this->*m_xIncFunc)(m_seqSize - 1), inY + (this->*m_yIncFunc)(m_seqSize - 1));
+    if((this->*m_inversFunc)(m_in)) return false;
+    else if(pieceIsNone(m_in))
+        posDataList.push_back(getEmptyPosDataAt(inX + (this->*m_xIncFunc)(m_seqSize - 1), inY + (this->*m_yIncFunc)(m_seqSize - 1)));
+
+    // Checking the inside of the sequence
+    for(std::size_t k{1}; k < m_seqSize - 1; ++k){
+        m_in = m_board->getPiece(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k));
+        // Sequence is broken, no need to go further
+        if((this->*m_inversFunc)(m_in)) return false;
+        // Hole in the sequence, decreasing the count, stopping if necessary
+        else if(pieceIsNone(m_in)){
+            if(++s_count > m_maxCount) return false;
+            else{
+                pos = Position(inX + (this->*m_xIncFunc)(k), inY + (this->*m_yIncFunc)(k));
+                posDataList.push_back(getEmptyPosDataAt(pos));
+            }
+        }
+    }
+
+    // If we came to this point, the ideal place for the stone has to be defined
+    for(PosData& posData : posDataList){
+        lookAround(posData);
+        if(posData.m_codeX <= m_refStatus
+                || posData.m_codeY <= m_refStatus
+                || posData.m_codeD <= m_refStatus
+                || posData.m_codeA <= m_refStatus){
+            pos = Position(posData.m_x, posData.m_y);
+            return true;
+        }
+    }
+
+    // Returning the result
+    return false;
+}
+// Reading a sequence (a V-shape with free spots around)
+bool PlayerJoseph::sequenceTypeVFound(std::size_t inX, std::size_t inY, Position& pos){
+    // Pieces at each direct diagonal
+    static Piece s_tl;
+    static Piece s_tr;
+    static Piece s_bl;
+    static Piece s_br;
+    // Line check structure
+    static LineData s_lineData1;
+    static LineData s_lineData2;
+    // Checking whether the central position is a target piece
+    m_in = m_board->getPiece(inX, inY);
+    if(!(this->*m_targetFunc)(m_in)) return false;
+    // Checking the pieces at the direct corners:
+    // Getting the pieces
+    s_tl = m_board->getPiece(inX - 1, inY + 1);
+    s_tr = m_board->getPiece(inX + 1, inY + 1);
+    s_bl = m_board->getPiece(inX - 1, inY - 1);
+    s_br = m_board->getPiece(inX + 1, inY - 1);
+    // Checking diagonal
+    if(!((this->*m_targetFunc)(s_tr) && pieceIsNone(s_bl)) &&
+            !((this->*m_targetFunc)(s_bl) && pieceIsNone(s_tr)))
+        return false;
+    // Checking antidiagonal
+    if(!((this->*m_targetFunc)(s_tl) && pieceIsNone(s_br)) &&
+            !((this->*m_targetFunc)(s_br) && pieceIsNone(s_tl)))
+        return false;
+
+    // If we got to this point, a v was found with free spots around.
+    // Checking whether it can be exploitable, first diagonal:
+    set2DIncrementDia();
+    lookAlong(inX, inY, m_seqSize, s_lineData1);
+    if(lineIsDead(s_lineData1)) return false;
+    // Checking whether it can be exploitable, second diagonal:
+    set2DIncrementAdia();
+    lookAlong(inX, inY, m_seqSize, s_lineData2);
+    if(lineIsDead(s_lineData2)) return false;
+
+    // Still there, dangerous v found.
+    // Defining the two positions to work with and the direction of the lines
+    static Position s_pos1;
+    static Position s_pos2;
+    if(((this->*m_targetFunc)(s_tl) && (this->*m_targetFunc)(s_tr)) ||
+            ((this->*m_targetFunc)(s_bl) && (this->*m_targetFunc)(s_br))){
+        // Position
+        s_pos1.setX(inX - 1);
+        s_pos1.setY(inY);
+        s_pos2.setX(inX + 1);
+        s_pos2.setY(inY);
+        // Direction
+        set2DIncrementVer();
+    }
+    else if(((this->*m_targetFunc)(s_tr) && (this->*m_targetFunc)(s_br)) ||
+            ((this->*m_targetFunc)(s_tl) && (this->*m_targetFunc)(s_bl))){
+        // Position
+        s_pos1.setX(inX);
+        s_pos1.setY(inY - 1);
+        s_pos2.setX(inX);
+        s_pos2.setY(inY + 1);
+        // Direction
+        set2DIncrementHor();
+    }
+
+    // Checking the points
+    if(!pieceIsNone(m_board->getPiece(s_pos1)) && !pieceIsNone(m_board->getPiece(s_pos2))) return false;
+    // Then checking the lines
+    if(pieceIsNone(m_board->getPiece(s_pos1))) lookAlong(s_pos1.x(), s_pos1.y(), m_seqSize, s_lineData1);
+    else s_lineData1.m_innBlocked = true;
+    if(pieceIsNone(m_board->getPiece(s_pos2))) lookAlong(s_pos2.x(), s_pos2.y(), m_seqSize, s_lineData2);
+    else s_lineData2.m_innBlocked = true;
+    // Consequences:
+    if(lineIsDead(s_lineData1) && lineIsDead(s_lineData2)) return false;
+    else if(lineIsDead(s_lineData1)) pos = s_pos2;
+    else if(lineIsDead(s_lineData2)) pos = s_pos1;
+    else if(s_lineData1.m_countTar < s_lineData2.m_countTar) pos = s_pos2;
+    else if(s_lineData1.m_countTar > s_lineData2.m_countTar) pos = s_pos1;
+    else if(getRandomInt(1, 2) == 1) pos = s_pos1;
+    else pos = s_pos2;
+
+    // We did it!
+    return true;
+}
+// Reading a sequence (a L-shape with free spots around)
+bool PlayerJoseph::sequenceTypeLFound(std::size_t inX, std::size_t inY, Position& pos){
+
+
+    return false;
+}
 
 // Looking around a given position
 void PlayerJoseph::lookAround(PlayerJoseph::PosData& posData){
     // Filling with information
     if(m_dir != jodir_x){
-        m_x2DIncFunc = &PlayerJoseph::incrementPlus;
-        m_y2DIncFunc = &PlayerJoseph::incrementSame;
-        m_x2DDecFunc = &PlayerJoseph::incrementMinus;
-        m_y2DDecFunc = &PlayerJoseph::incrementSame;
+        set2DIncrementHor();
         lookAlong(posData.m_x, posData.m_y, posData.m_codeX);
     }
     if(m_dir != jodir_y){
-        m_x2DIncFunc = &PlayerJoseph::incrementSame;
-        m_y2DIncFunc = &PlayerJoseph::incrementPlus;
-        m_x2DDecFunc = &PlayerJoseph::incrementSame;
-        m_y2DDecFunc = &PlayerJoseph::incrementMinus;
+        set2DIncrementVer();
         lookAlong(posData.m_x, posData.m_y, posData.m_codeY);
     }
     if(m_dir != jodir_d){
-        m_x2DIncFunc = &PlayerJoseph::incrementPlus;
-        m_y2DIncFunc = &PlayerJoseph::incrementPlus;
-        m_x2DDecFunc = &PlayerJoseph::incrementMinus;
-        m_y2DDecFunc = &PlayerJoseph::incrementMinus;
+        set2DIncrementDia();
         lookAlong(posData.m_x, posData.m_y, posData.m_codeD);
     }
     if(m_dir != jodir_a){
-        m_x2DIncFunc = &PlayerJoseph::incrementPlus;
-        m_y2DIncFunc = &PlayerJoseph::incrementMinus;
-        m_x2DDecFunc = &PlayerJoseph::incrementMinus;
-        m_y2DDecFunc = &PlayerJoseph::incrementPlus;
+        set2DIncrementAdia();
         lookAlong(posData.m_x, posData.m_y, posData.m_codeA);
     }
 }
@@ -560,6 +777,31 @@ void PlayerJoseph::lookAlong(std::size_t x, std::size_t y, LineStatus& code){
         }
     }
 }
+// Looking along a given line centered on the input point (variable size)
+void PlayerJoseph::lookAlong(std::size_t x, std::size_t y, std::size_t size, LineData& lineData){
+    // Initializing line data
+    resetLineData(lineData);
+
+    // Scanning the line
+    for(std::size_t i{ 1 }; i < size; ++i){
+        // Checking the decremental side
+        m_in = m_board->getPiece(x + (this->*m_x2DDecFunc)(i), y + (this->*m_x2DDecFunc)(i));
+        if((this->*m_targetFunc)(m_in)) ++(lineData.m_countTar);
+        else if((this->*m_inversFunc)(m_in)){
+            ++(lineData.m_countInv);
+            if(i == size - 1) lineData.m_begBlocked = true;
+            else lineData.m_innBlocked = true;
+        }
+        // Checking the incremental side
+        m_in = m_board->getPiece(x + (this->*m_x2DIncFunc)(i), y + (this->*m_x2DIncFunc)(i));
+        if((this->*m_targetFunc)(m_in)) ++(lineData.m_countTar);
+        else if((this->*m_inversFunc)(m_in)){
+            ++(lineData.m_countInv);
+            if(i == size - 1) lineData.m_endBlocked = true;
+            else lineData.m_innBlocked = true;
+        }
+    }
+}
 
 // Evaluating a list of position data
 Position PlayerJoseph::evaluatePositions(const std::vector<PosData>& list){
@@ -639,6 +881,32 @@ int PlayerJoseph::incrementMinus(int inc) const{
     return -inc;
 }
 
+// Setting the increment / decrement functions according to the direction
+void PlayerJoseph::set2DIncrementHor(){
+    m_x2DIncFunc = &PlayerJoseph::incrementPlus;
+    m_y2DIncFunc = &PlayerJoseph::incrementSame;
+    m_x2DDecFunc = &PlayerJoseph::incrementMinus;
+    m_y2DDecFunc = &PlayerJoseph::incrementSame;
+}
+void PlayerJoseph::set2DIncrementVer(){
+    m_x2DIncFunc = &PlayerJoseph::incrementSame;
+    m_y2DIncFunc = &PlayerJoseph::incrementPlus;
+    m_x2DDecFunc = &PlayerJoseph::incrementSame;
+    m_y2DDecFunc = &PlayerJoseph::incrementMinus;
+}
+void PlayerJoseph::set2DIncrementDia(){
+    m_x2DIncFunc = &PlayerJoseph::incrementPlus;
+    m_y2DIncFunc = &PlayerJoseph::incrementPlus;
+    m_x2DDecFunc = &PlayerJoseph::incrementMinus;
+    m_y2DDecFunc = &PlayerJoseph::incrementMinus;
+}
+void PlayerJoseph::set2DIncrementAdia(){
+    m_x2DIncFunc = &PlayerJoseph::incrementPlus;
+    m_y2DIncFunc = &PlayerJoseph::incrementMinus;
+    m_x2DDecFunc = &PlayerJoseph::incrementMinus;
+    m_y2DDecFunc = &PlayerJoseph::incrementPlus;
+}
+
 // Getting an empty posData object with the given position
 inline PlayerJoseph::PosData PlayerJoseph::getEmptyPosDataAt(const Position& pos) const{
     return getEmptyPosDataAt(pos.x(), pos.y());
@@ -649,6 +917,19 @@ inline PlayerJoseph::PosData PlayerJoseph::getEmptyPosDataAt(std::size_t x, std:
             LineStatus::line_unknown,
             LineStatus::line_unknown,
             LineStatus::line_unknown};
+}
+
+// Resetting a LineData object
+inline void PlayerJoseph::resetLineData(LineData& lineData) const{
+    lineData.m_countInv = 0;
+    lineData.m_countTar = 0;
+    lineData.m_begBlocked = false;
+    lineData.m_endBlocked = false;
+    lineData.m_innBlocked = false;
+}
+// Telling the line is dead
+inline bool PlayerJoseph::lineIsDead(const LineData& lineData) const{
+    return (lineData.m_innBlocked || (lineData.m_begBlocked && lineData.m_endBlocked));
 }
 
 // Logging stuff
