@@ -1,14 +1,43 @@
 #include "Players/PlayerJoseph.h"
 #include "Utilities.h"
 #include <algorithm>
+#include <chrono>
 
 namespace FIAR{
+
+struct TimeEvaluation
+{
+    TimeEvaluation() : start{ std::chrono::system_clock::now() }
+    { }
+
+    std::chrono::microseconds Duration() const
+    { return std::chrono::duration_cast<std::chrono::microseconds>(Now() - start); }
+
+    int64_t ElapsedUs() const
+    { return Duration().count(); }
+
+private:
+    std::chrono::time_point<std::chrono::system_clock> Now() const { return std::chrono::system_clock::now(); }
+    std::chrono::time_point<std::chrono::system_clock> start;
+};
+
+std::ostream& operator<<(std::ostream& stream, const TimeEvaluation& eval)
+{
+    stream << eval.ElapsedUs() << " us";
+    return stream;
+}
 
 // Constructor
 PlayerJoseph::PlayerJoseph(const Board* board, Piece piece)
     : PlayerBase( board, "JosephBot", piece )
     , m_boardW{ board->getSizeX() }
-    , m_boardH{ board->getSizeY() }{
+    , m_boardH{ board->getSizeY() }
+    , m_fields{ m_boardW * m_boardH }
+    , m_evalsW( m_fields )
+    , m_evalsL( m_fields )
+    , m_imgEval{ m_boardW * m_imgZoom, m_boardH * m_imgZoom }
+    , m_imgChoice{ m_boardW * m_imgZoom, m_boardH * m_imgZoom }
+{
 
     if(m_enableLog) m_fileStream = std::ofstream("JosephBotLog.txt");
 
@@ -26,42 +55,19 @@ PlayerJoseph::~PlayerJoseph(){
 
 // Function to use to make an action
 Position PlayerJoseph::doAction(){
+    static TimeEvaluation waitingTime;
+    log("Waiting time:", waitingTime);
+
     // Position where the stone has to be placed
     Position pos;
-    log("NewRound:");
     ++m_rndCnt;
+    log("NewRound:", m_rndCnt);
 
-    // Looking for a win sequence of the 1st order
-    if(lookForWinSequence1(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 1st order
-    else if(lookForDeadlySequence1(pos)) std::cout << pos << '\n';
-
-    // Looking for a win sequence of the 2nd order
-    else if(lookForWinSequence2(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 2nd order
-    else if(lookForDeadlySequence2(pos)) std::cout << pos << '\n';
-
-    // Looking for a win sequence of the 3rd order
-    else if(lookForWinSequence3(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 3rd order
-    else if(lookForDeadlySequence3(pos)) std::cout << pos << '\n';
-
-    // Looking for a spot where a win sequence of the 3rd order can be placed
-    else if(lookForWinSequence4(pos)) std::cout << pos << '\n';
-    // Looking for a deadly sequence of the 4th order
-    else if(lookForDeadlySequence4(pos)) std::cout << pos << '\n';
-
-    // Looking for a spot where a single stone is placed and giving him a friend
-    else if(lookForBuildPair(pos)) std::cout << pos << '\n';
-
-    // Doing random shit
-    else{
-        do{
-            pos = Position(static_cast<std::size_t>(getRandomInt(1, m_boardW)), static_cast<std::size_t>(getRandomInt(1, m_boardH)));
-        }while(!m_board->isEmptyAt(pos));
-        std::cout << pos << '\n';
-        ++m_ranCnt;
-    }
+    // Playing an algorithm
+    playNewAlgo(pos);
+    log("Evaluation:", pos);
+    //playOldAlgo(pos);
+    //std::cout << pos << '\n';
 
     // Logging the position and possible errors
     log("Playing", pos);
@@ -72,8 +78,58 @@ Position PlayerJoseph::doAction(){
     // End of round, jumpline to make the log clearer
     log("");
 
+    // Saving the time to evaluate the waiting time
+    waitingTime = TimeEvaluation();
+
     // Returning the position
     return pos;
+}
+
+// Playing an algorithm
+void PlayerJoseph::playNewAlgo(Position& pos){
+    // Evaluating the board
+    TimeEvaluation evalTime;
+    evaluateBoard(pos);
+    log("Board evaluation time:", evalTime);
+
+    // Drawing the images
+    if (!m_enableImg)
+        return;
+    TimeEvaluation imgTime;
+    makeEvalImgs(pos);
+    log("Image update time:", imgTime);
+}
+void PlayerJoseph::playOldAlgo(Position& pos){
+    // Looking for a win sequence of the 1st order
+    if(lookForWinSequence1(pos)) return;
+    // Looking for a deadly sequence of the 1st order
+    else if(lookForDeadlySequence1(pos)) return;
+
+    // Looking for a win sequence of the 2nd order
+    else if(lookForWinSequence2(pos)) return;
+    // Looking for a deadly sequence of the 2nd order
+    else if(lookForDeadlySequence2(pos)) return;
+
+    // Looking for a win sequence of the 3rd order
+    else if(lookForWinSequence3(pos)) return;
+    // Looking for a deadly sequence of the 3rd order
+    else if(lookForDeadlySequence3(pos)) return;
+
+    // Looking for a spot where a win sequence of the 3rd order can be placed
+    else if(lookForWinSequence4(pos)) return;
+    // Looking for a deadly sequence of the 4th order
+    else if(lookForDeadlySequence4(pos)) return;
+
+    // Looking for a spot where a single stone is placed and giving him a friend
+    else if(lookForBuildPair(pos)) return;
+
+    // Doing random shit
+    else{
+        do{
+            pos = Position(static_cast<std::size_t>(getRandomInt(1, m_boardW)), static_cast<std::size_t>(getRandomInt(1, m_boardH)));
+        }while(!m_board->isEmptyAt(pos));
+        ++m_ranCnt;
+    }
 }
 
 // Looking for a win sequence of the 1st order (****_, ***_*, **_**, *_***, _****)
@@ -280,21 +336,20 @@ bool PlayerJoseph::lookForBuildPair(Position& pos){
     static bool isOk;
     static PosData s_posData;
     // Scanning the board
-    for(std::size_t i{1}; i <= m_boardW; ++i){
-        for(std::size_t j{1}; j <= m_boardH; ++j){
-            m_in = m_board->getPiece(i, j);
-            if(pieceIsMine(m_in)){
-                // Scanning around
-                for(int k{-1}; k <= 1; ++k){
-                    for(int l{-1}; l <= 1; ++l){
-                        if((k || l) && m_board->isEmptyAt(i - k, j - l, &isOk)){
-                            if(isOk){
-                                s_posData = getEmptyPosDataAt(i - k, j - l);
-                                if(std::count(posDataList.begin(), posDataList.end(), s_posData) <= 0)
-                                    posDataList.push_back(s_posData);
-                            }
-                        }
-                    }
+    for (size_t i = 0; i < m_boardW * m_boardH; ++i)
+    {
+        m_in = m_board->getPiece(xFromIndex(i), yFromIndex(i));
+        if(!pieceIsMine(m_in))
+            continue;
+        // Scanning around
+        for(int k{-1}; k <= 1; ++k){
+            for(int l{-1}; l <= 1; ++l){
+                if((k || l) && m_board->isEmptyAt(pos.x() - 1 - k, pos.y() - 1 - l, &isOk)){
+                    if(!isOk)
+                        continue;
+                    s_posData = getEmptyPosDataAt(pos.x() - 1 - k, pos.y() - 1 - l);
+                    if(std::count(posDataList.begin(), posDataList.end(), s_posData) <= 0)
+                        posDataList.push_back(s_posData);
                 }
             }
         }
@@ -857,6 +912,206 @@ Position PlayerJoseph::evaluatePositions(const std::vector<PosData>& list){
     return pos;
 }
 
+// Evaluating the board, filling the evaluation vector with data
+void PlayerJoseph::evaluateBoard(Position& pos){
+    // Resetting the evaluation value
+    m_evalRslt = 0.;
+    std::fill(m_evalsW.begin(), m_evalsW.end(), 0.);
+    std::fill(m_evalsL.begin(), m_evalsL.end(), 0.);
+
+    // Scanning the board: win
+    m_targetFunc = &PlayerJoseph::pieceIsMine;
+    scanBoard(pos, &PlayerJoseph::evaluateWin);
+
+    // Scanning the board: lose
+    m_targetFunc = &PlayerJoseph::pieceIsAdversary;
+    scanBoard(pos, &PlayerJoseph::evaluateLose);
+
+    // Checking whether the eval is still 0., case yes snail algo
+    if(m_evalRslt == 0.) scanStar(pos);
+}
+// Scanning the board calling the appropriate tracking function
+void PlayerJoseph::scanBoard(Position& pos, void (PlayerJoseph::*scanFunc)(std::size_t inX, std::size_t inY, Position& pos)){
+    // Checking whether the method pointer is ok
+    if(!scanFunc)
+        return;
+    for (size_t i = 0; i < m_fields; ++i){
+        const size_t x = xFromIndex(i);
+        const size_t y = yFromIndex(i);
+        m_in = m_board->getPiece(x, y);
+        (this->*scanFunc)(x, y, pos);
+    }
+}
+// Scanning the board in a star pattern, returning the first free spot
+void PlayerJoseph::scanStar(Position& pos){
+    // Start positions
+    static std::size_t s_minX;
+    static std::size_t s_maxX;
+    static std::size_t s_minY;
+    static std::size_t s_maxY;
+    // X definition
+    s_minX = m_boardW / 2;
+    if(m_boardW % 2 == 0) s_maxX = s_minX + 1;
+    else s_maxX = s_minX;
+    // Y definition
+    s_minY = m_boardH / 2;
+    if(m_boardH % 2 == 0) s_maxY = s_minY + 1;
+    else s_maxY = s_minY;
+    // Max increment definition
+    static std::size_t s_maxInc;
+    s_maxInc = ((m_boardW > m_boardH ? m_boardW : m_boardW) - 1) / 2;
+
+    // Scanning the center
+    for(std::size_t x{ s_minX }; x <= s_maxX; ++x){
+        for(std::size_t y{ s_minY }; y <= s_maxY; ++y){
+            if(pieceIsNone(m_board->getPiece(x, y))){
+                pos = Position(x, y);
+                return;
+            }
+        }
+    }
+    // Scanning the rest
+    for(std::size_t i{ 1 }; i <= s_maxInc; ++i){
+        if(s_minY - i >= 1){
+            for(std::size_t x{ s_minX - i }; x < s_maxX + i; ++x){
+                if(pieceIsNone(m_board->getPiece(x, s_minY - i))){
+                    pos = Position(x, s_minY - i);
+                    return;
+                }
+            }
+        }
+        if(s_maxX + i <= m_boardW){
+            for(std::size_t y{ s_minY - i }; y < s_maxY + i; ++y){
+                if(pieceIsNone(m_board->getPiece(s_maxX + i, y))){
+                    pos = Position(s_maxX + i, y);
+                    return;
+                }
+            }
+        }
+        if(s_maxY + i <= m_boardH){
+            for(std::size_t x{ s_maxX + i }; x > s_minX - i; --x){
+                if(pieceIsNone(m_board->getPiece(x, s_maxY + i))){
+                    pos = Position(x, s_maxY + i);
+                    return;
+                }
+            }
+        }
+        if(s_minX - i >= 1){
+            for(std::size_t y{ s_maxY + i }; y > s_minY - i; --y){
+                if(pieceIsNone(m_board->getPiece(s_minX - i, y))){
+                    pos = Position(s_minX - i, y);
+                    return;
+                }
+            }
+        }
+    }
+}
+// Evaluating win / lose chances at the given position
+void PlayerJoseph::evaluateWin(std::size_t inX, std::size_t inY, Position& pos){
+    // Slot occupied
+    if(!pieceIsNone(m_in))
+        return;
+
+    // Slot is free, processing!
+    static double s_locEval;
+    s_locEval = 0.;
+    set2DIncrementHor();
+    s_locEval += evaluateLine(inX, inY);
+    set2DIncrementVer();
+    s_locEval += evaluateLine(inX, inY);
+    set2DIncrementDia();
+    s_locEval += evaluateLine(inX, inY);
+    set2DIncrementAdia();
+    s_locEval += evaluateLine(inX, inY);
+    // Checking whether the evaluation is higher than the best one
+    if(s_locEval > m_evalRslt){
+        pos = Position(inX, inY);
+        m_evalRslt = s_locEval;
+    }
+    // Setting evaluation value in the vector
+    m_evalsW[indexFromPos(inX, inY)] = s_locEval;
+}
+void PlayerJoseph::evaluateLose(std::size_t inX, std::size_t inY, Position& pos){
+    // Slot occupied
+    if(!pieceIsNone(m_in))
+        return;
+
+    // Slot is free, processing!
+    static double s_locEval;
+    s_locEval = 0.;
+    set2DIncrementHor();
+    s_locEval += evaluateLine(inX, inY);
+    set2DIncrementVer();
+    s_locEval += evaluateLine(inX, inY);
+    set2DIncrementDia();
+    s_locEval += evaluateLine(inX, inY);
+    set2DIncrementAdia();
+    s_locEval += evaluateLine(inX, inY);
+    // Checking whether the evaluation is higher than the best one
+    if(s_locEval > m_evalRslt){
+        pos = Position(inX, inY);
+        m_evalRslt = s_locEval;
+    }
+    // Setting evaluation value in the vector
+    m_evalsL[indexFromPos(inX, inY)] = s_locEval;
+}
+// Evaluating a line
+double PlayerJoseph::evaluateLine(std::size_t x, std::size_t y){
+    // Result of the line evaluation
+    static double s_rslt;
+    s_rslt = 0.;
+    // Occupation of a line
+    enum PieceId : int8_t {
+        Blocked = -1,
+        Empty = 0,
+        Target = 1
+    };
+    std::vector<PieceId> slots(1, PieceId::Empty);
+    slots.reserve(m_evalSize);
+    // Evaluation function
+    auto checkPiece = [this](const size_t x, const size_t y)
+    {
+        // Coordinates out of board's range?
+        if(x < 1u || y < 1u || x > m_boardW || y > m_boardH)
+            return PieceId::Blocked;
+        // Loading the piece
+        m_in = m_board->getPiece(x, y);
+        // Evaluation
+        if((this->*m_targetFunc)(m_in))
+            return PieceId::Target;
+        else if(pieceIsNone(m_in))
+            return PieceId::Empty;
+        return PieceId::Blocked;
+    };
+
+    // Scanning the line decrementally
+    for(size_t i{ 1 }; i < m_winLineSize; ++i){
+        const PieceId pieceId = checkPiece(x + (this->*m_x2DDecFunc)(i), y + (this->*m_y2DDecFunc)(i));
+        if (pieceId == PieceId::Blocked)
+            break;
+        slots.insert(slots.begin(), pieceId);
+    }
+    // Scanning the line incrementally
+    for(size_t i{ 1 }; i < m_winLineSize; ++i){
+        const PieceId pieceId = checkPiece(x + (this->*m_x2DIncFunc)(i), y + (this->*m_y2DIncFunc)(i));
+        if (pieceId == PieceId::Blocked)
+            break;
+        slots.insert(slots.end(), pieceId);
+    }
+    // Not enough slots to win
+    if(slots.size() < m_winLineSize)
+        return 0.;
+
+    // Analyzing the slots
+    for(auto it = slots.begin(); slots.end() - it >= static_cast<int>(m_winLineSize); ++it){
+        const size_t targets = std::count(it, it + m_winLineSize - 1, PieceId::Target);
+        if (targets > 0u)
+            s_rslt += std::pow(m_evalBase, targets);
+    }
+    // Result
+    return s_rslt;
+}
+
 // Telling whether a piece is adversary
 inline bool PlayerJoseph::pieceIsAdversary(Piece piece) const{
     return (piece != m_piece && piece != Piece::none);
@@ -875,9 +1130,8 @@ inline bool PlayerJoseph::pieceIsMine(Piece piece) const{
 }
 
 // Increment functions
-int PlayerJoseph::incrementSame(int inc) const{
-    inc = 0;// To remove warning
-    return inc;
+int PlayerJoseph::incrementSame(int /*inc*/) const{
+    return 0;
 }
 int PlayerJoseph::incrementPlus(int inc) const{
     return inc;
@@ -937,14 +1191,228 @@ inline bool PlayerJoseph::lineIsDead(const LineData& lineData) const{
     return (lineData.m_innBlocked || (lineData.m_begBlocked && lineData.m_endBlocked));
 }
 
-// Logging stuff
-inline void PlayerJoseph::log(const std::string& str){
-    if(m_enableLog) m_fileStream << str << '\n';
-}
-
 // Operator overload
 bool operator==(const PlayerJoseph::PosData& a, const PlayerJoseph::PosData& b){
     return (a.m_x == b.m_x && a.m_y == b.m_y);
+}
+
+void PlayerJoseph::makeEvalImgs(const Position& pos)
+{
+    double maxVal = std::max(*std::max_element(m_evalsW.begin(), m_evalsW.end()),
+                             *std::max_element(m_evalsL.begin(), m_evalsL.end()));
+
+    for (size_t i = 0u; i < m_fields; ++i){
+        const size_t x = xFromIndex(i) - 1;
+        const size_t y = yFromIndex(i) - 1;
+        const Piece p = m_board->getPiece(x + 1, y + 1);
+
+        if (pieceIsMine(p)){
+            setPixel(m_imgEval, x, y, JLImage::ColorHSV{0u, 0u, 0u});
+            setPixel(m_imgChoice, x, y, JLImage::ColorHSV{0u, 0u, 0u});
+            continue;
+        }
+
+        if (pieceIsAdversary(p)){
+            setPixel(m_imgEval, x, y, JLImage::ColorHSV{0u, 0u, 127u});
+            setPixel(m_imgChoice, x, y, JLImage::ColorHSV{0u, 0u, 127u});
+            continue;
+        }
+
+        const double& evalL = m_evalsL.at(i);
+        const double& evalW = m_evalsW.at(i);
+        const uint16_t h = static_cast<uint16_t>(120. * evalW / (evalW + evalL));
+        const uint8_t v = static_cast<uint8_t>(255. * std::max(evalL, evalW) / maxVal);
+
+        setPixelFixVal(m_imgEval, x, y, h, v);
+        setPixelFixVal(m_imgChoice, x, y, h, v);
+    }
+
+    setPixelFixVal(m_imgChoice, pos.x() - 1, pos.y() - 1, 240u, 255u);
+
+    m_imgEval.save("Pics/" + std::to_string(m_rndCnt) + "_Eval");
+    m_imgChoice.save("Pics/" + std::to_string(m_rndCnt) + "_Play");
+}
+
+inline void PlayerJoseph::setPixel(JLImage& image, std::size_t x, std::size_t y, const JLImage::ColorHSV& c){
+    for (std::size_t imgX = x * m_imgZoom; imgX < m_imgZoom * (x + 1); ++imgX)
+        for (std::size_t imgY = y * m_imgZoom; imgY < m_imgZoom * (y + 1); ++imgY)
+            image.setPixel(imgX, imgY, JLImage::ColorRGB::fromHSV(c));
+}
+
+inline void PlayerJoseph::setPixelFixVal(JLImage& image, std::size_t x, std::size_t y, uint16_t hue, uint8_t saturation)
+{
+    setPixel(image, x, y, JLImage::ColorHSV{hue, saturation, 255u});
+}
+
+JLImage::ColorRGB JLImage::ColorRGB::fromHSV(const ColorHSV &in)
+{
+    // Constants
+    const double maxValue = 255.;
+    const double regionSize = 60.;
+
+    // Input
+    const double h = in.hue;
+    const double s = in.saturation / maxValue;
+    const double v = in.value / maxValue;
+
+    // Calculations
+    const double region = h / regionSize;
+    const double c = v * s;
+    auto modulus = [](const double lhs, const double rhs)
+    { return lhs - (std::floor(lhs / rhs)) * rhs; };
+    const double x = c * (1 - std::abs(modulus(region, 2.) - 1));
+    const double r1 = region < 1. || region >= 5. ? c
+                    : region >= 2. && region < 4. ? 0. : x;
+    const double g1 = region >= 1. && region < 3. ? c
+                    : region >= 4. ? 0. : x;
+    const double b1 = region >= 3. && region < 5. ? c
+                    : region < 2. ? 0. : x;
+    const double m = v - c;
+    auto fractionToValue = [maxValue](const double fraction)
+    { return static_cast<uint8_t>(maxValue * fraction); };
+
+    // Output
+    return ColorRGB{ fractionToValue(r1 + m), fractionToValue(g1 + m), fractionToValue(b1 + m)};
+}
+
+// Constructor
+JLImage::JLImage(std::size_t w, std::size_t h)
+    : m_w{ w }
+    , m_h{ h }{
+    if(m_w && m_h){
+        // Defining the count of bytes in a row
+        m_rowBytes = m_w * 3;
+        while(m_rowBytes % 4 != 0) ++m_rowBytes;
+        // Defining the count of data bytes
+        m_dataBytes   = m_h * m_rowBytes;
+        // Defining the count of bytes in the file
+        m_fileBytes = s_gHeaderBytes + s_iHeaderBytes + m_dataBytes;
+
+        // Building the image
+        m_image       = new std::int8_t[m_fileBytes];
+        // Defining the general header
+        m_magicNumber = (std::int16_t*) m_image;
+        m_fileSize    = (std::int32_t*) (m_magicNumber + 1);
+        m_id1         = (std::int16_t*) (m_fileSize    + 1);
+        m_id2         = (std::int16_t*) (m_id1         + 1);
+        m_imageOffset = (std::int32_t*) (m_id2         + 1);
+        // Defining the image header
+        m_iHeaderSize = (std::int32_t*) (m_imageOffset + 1);
+        m_imageW      = (std::int32_t*) (m_iHeaderSize + 1);
+        m_imageH      = (std::int32_t*) (m_imageW      + 1);
+        m_colorPlanes = (std::int16_t*) (m_imageH      + 1);
+        m_bitsPerPx   = (std::int16_t*) (m_colorPlanes + 1);
+        m_comprMethod = (std::int32_t*) (m_bitsPerPx   + 1);
+        m_imageSize   = (std::int32_t*) (m_comprMethod + 1);
+        m_horiReso    = (std::int32_t*) (m_imageSize   + 1);
+        m_vertReso    = (std::int32_t*) (m_horiReso    + 1);
+        m_colorCnt    = (std::int32_t*) (m_vertReso    + 1);
+        m_impColorCnt = (std::int32_t*) (m_colorCnt    + 1);
+        // Data
+        m_data        = (std::uint8_t*) (m_impColorCnt + 1);
+
+        // Setting the magic number
+        *m_magicNumber = 0x4d42;
+        // Setting the size
+        *m_fileSize    = m_fileBytes;
+        // Setting the IDs
+        *m_id1         = 0;
+        *m_id2         = 0;
+        // Setting the image offset
+        *m_imageOffset = s_gHeaderBytes + s_iHeaderBytes;
+        // Setting the size of the image header
+        *m_iHeaderSize = s_iHeaderBytes;
+        // Setting the dimensions of the pic
+        *m_imageW      = m_w;
+        *m_imageH      = m_h;
+        // Setting the number of color planes
+        *m_colorPlanes = 1;
+        // Setting the number of bits per pixel
+        *m_bitsPerPx   = 24;
+        // Setting the compression method (0 is none)
+        *m_comprMethod = 0;
+        // Setting the image size
+        *m_imageSize   = m_dataBytes;
+        // Setting the resolution (px per meter) --> 2cm per pixel
+        *m_horiReso    = 50;
+        *m_vertReso    = 50;
+        // Setting the number of colors in the color palette: 0 to default to 2n
+        *m_colorCnt    = 0;
+        // Setting the number of important colors used: 0 when every color is important
+        *m_impColorCnt = 0;
+
+        // Resetting the image
+        reset();
+    }
+}
+// Destructor
+JLImage::~JLImage(){
+    delete[] m_image;
+}
+
+// Resetting the image
+void JLImage::reset(std::uint8_t r, std::uint8_t g, std::uint8_t b){
+    // Setting all data to 0
+    if(m_image){
+        for(std::size_t y{ 0u }; y < m_h; ++y){
+            m_pxRW = m_data + (y * m_rowBytes);
+            for(std::size_t x{ 0u }; x < m_w; ++x){
+                *(m_pxRW + 2) = r;
+                *(m_pxRW + 1) = g;
+                *(m_pxRW + 0) = b;
+                m_pxRW += 3;
+            }
+            while(m_pxRW - m_data < m_rowBytes) *(m_pxRW++) = 0;
+        }
+    }
+}
+void JLImage::reset(const ColorRGB& color){
+    reset(color.red, color.green, color.blue);
+}
+void JLImage::reset(){
+    reset(0u, 0u, 0u);
+}
+// Setting a pixel value
+void JLImage::setPixel(std::size_t x, std::size_t y, std::uint8_t r, std::uint8_t g, std::uint8_t b){
+    // Invalid coordinates
+    if(x > m_w || y > m_h) return;
+    // Getting the address
+    m_pxRW = m_data + (y * m_rowBytes + x * 3);
+    //std::cout << (int) m_data << ' ' << (int) m_pxRW << ' ' << (int) m_data + m_dataBytes << '\n';
+    // Writing the pixel
+    *(m_pxRW + 2) = r;
+    *(m_pxRW + 1) = g;
+    *(m_pxRW + 0) = b;
+}
+void JLImage::setPixel(std::size_t x, std::size_t y, const ColorRGB& color){
+    setPixel(x, y, color.red, color.green, color.blue);
+}
+// Returning a pixel value
+JLImage::ColorRGB JLImage::getPixel(std::size_t x, std::size_t y){
+    // Invalid coordinates
+    if(x > m_w || y > m_h) return { 0u, 0u, 0u };
+    // Getting the address
+    m_pxRW = m_data + (y * m_rowBytes + x * 3);
+    // Returning the result
+    return { *(m_pxRW + 2), *(m_pxRW + 1), *(m_pxRW + 0) };
+}
+// Saving the image
+void JLImage::save(const std::string& name){
+    if(name.size() > 0){
+        std::ofstream stream(name + ".bmp", std::ofstream::binary);
+        stream << *this;
+        //stream.flush();
+        stream.close();
+    }
+}
+// << operator overload
+std::ostream& operator<<(std::ostream& stream, const JLImage& image){
+    if(image.m_image){
+        for(int i{ 0 }; i < image.m_fileBytes; ++i){
+            stream << image.m_image[i];
+        }
+    }
+    return stream;
 }
 
 }// End namespace FIAR

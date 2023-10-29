@@ -10,6 +10,100 @@
 
 namespace FIAR{
 
+class JLImage{
+public:
+    // Color
+    struct ColorHSV{
+        uint16_t hue      { 0u };
+        uint8_t saturation{ 0u };
+        uint8_t value     { 0u };
+    };
+    struct ColorRGB{
+        uint8_t red  { 0u };
+        uint8_t green{ 0u };
+        uint8_t blue { 0u };
+
+        static ColorRGB fromHSV(const ColorHSV& in);
+    };
+
+    // Constructors
+    JLImage(std::size_t w, std::size_t h);
+    JLImage(const JLImage& ref) = delete;
+    JLImage() = delete;
+
+    // Destructor
+    ~JLImage();
+
+    // Resetting the image
+    void reset(uint8_t r, uint8_t g, uint8_t b);
+    void reset(const ColorRGB& color);
+    void reset();
+    // Setting a pixel value
+    void setPixel(std::size_t x, std::size_t y, uint8_t r, uint8_t g, uint8_t b);
+    void setPixel(std::size_t x, std::size_t y, const ColorRGB& color);
+    // Returning a pixel value
+    ColorRGB getPixel(std::size_t x, std::size_t y);
+    // Saving the image
+    void save(const std::string& name);
+    // << operator overload
+    friend std::ostream& operator<<(std::ostream& stream, const JLImage& image);
+
+private:
+    // Dimensions
+    std::size_t m_w{ 0 };
+    std::size_t m_h{ 0 };
+    // Size of the header
+    static const std::int32_t s_gHeaderBytes{ 14 };
+    // Size of the image header
+    static const std::int32_t s_iHeaderBytes{ 40 };
+    // Size of a row
+    std::int32_t m_rowBytes{ 0 };
+    // Size of the data
+    std::int32_t m_dataBytes{ 0 };
+    // Size of the file
+    std::int32_t m_fileBytes{ 0 };
+
+    // Actual image
+    std::int8_t* m_image{ nullptr };
+
+    // General header:
+    // 0x0000	2 octets	le nombre magique correspondant à l'utilisation du fichier BMP
+    std::int16_t* m_magicNumber{ nullptr };
+    // BM - Windows 3.1x, 95, NT, etc.
+    // BA - OS/2 Bitmap Array
+    // CI - OS/2 Icône Couleur (Color Icon)
+    // CP - OS/2 Pointeur Couleur (Color Pointer)
+    // IC - OS/2 Icône (Icon)
+    // PT - OS/2 Pointeur (Pointer)
+    // 0x0002	4 octets	la taille du fichier BMP en octets
+    std::int32_t* m_fileSize{ nullptr };
+    // 0x0006	2 octets	réservé pour l'identifiant de l'application qui a créé le fichier
+    std::int16_t* m_id1{ nullptr };
+    // 0x0008	2 octets	réservé pour l'identifiant de l'application qui a créé le fichier
+    std::int16_t* m_id2{ nullptr };
+    // 0x000A	4 octets	l'offset (l'adresse de départ) du contenu du BMP
+    std::int32_t* m_imageOffset{ nullptr };
+
+    // Image header:
+    std::int32_t* m_iHeaderSize{ nullptr };
+    std::int32_t* m_imageW{ nullptr };
+    std::int32_t* m_imageH{ nullptr };
+    std::int16_t* m_colorPlanes{ nullptr };
+    std::int16_t* m_bitsPerPx{ nullptr };
+    std::int32_t* m_comprMethod{ nullptr };
+    std::int32_t* m_imageSize{ nullptr };
+    std::int32_t* m_horiReso{ nullptr };
+    std::int32_t* m_vertReso{ nullptr };
+    std::int32_t* m_colorCnt{ nullptr };
+    std::int32_t* m_impColorCnt{ nullptr };
+
+    // Data
+    std::uint8_t* m_data{ nullptr };
+
+    // Pointer for reading / writing pixels
+    std::uint8_t* m_pxRW{ nullptr };
+};
+
 // Dumm, duemmer, am duemmsten
 class PlayerJoseph final : public PlayerBase{
 public:
@@ -76,6 +170,10 @@ private:
 
     // Function to use to make an action
     Position doAction() override;
+
+    // Playing an algorithm
+    void playNewAlgo(Position& pos);
+    void playOldAlgo(Position& pos);
 
     // Looking for a win sequence of the 1st order
     // (****_, ***_*, **_**, *_***, _****)
@@ -149,6 +247,18 @@ private:
     // Looking for sequences
     bool findSequence(std::size_t size) const;
 
+    // Evaluating the board, filling the evaluation vector with data
+    void evaluateBoard(Position& pos);
+    // Scanning the board calling the appropriate scanning function
+    void scanBoard(Position& pos, void (PlayerJoseph::*scanFunc)(std::size_t inX, std::size_t inY, Position& pos));
+    // Scanning the board in a snail pattern, returning the first free spot
+    void scanStar(Position& pos);
+    // Evaluating win / lose chances at the given position
+    void evaluateWin(std::size_t inX, std::size_t inY, Position& pos);
+    void evaluateLose(std::size_t inX, std::size_t inY, Position& pos);
+    // Evaluating a line
+    double evaluateLine(std::size_t inX, std::size_t inY);
+
     // Telling whether a piece is adversary
     inline bool pieceIsAdversary(Piece piece) const;
     // Telling whether a piece is adversary or none
@@ -159,7 +269,7 @@ private:
     inline bool pieceIsMine(Piece piece) const;
 
     // Increment functions
-    int incrementSame(int inc) const;
+    int incrementSame(int /*inc*/) const;
     int incrementPlus(int inc) const;
     int incrementMinus(int inc) const;
 
@@ -173,17 +283,31 @@ private:
     inline PosData getEmptyPosDataAt(const Position& pos) const;
     inline PosData getEmptyPosDataAt(std::size_t x, std::size_t y) const;
 
+    // Getting x and y out of an index
+    inline size_t xFromIndex(size_t index) { return index % m_boardW + 1; }
+    inline size_t yFromIndex(size_t index) { return index / m_boardW + 1; }
+    // Getting an index out of x and y
+    inline size_t indexFromPos(size_t x, size_t y) { return x - 1 + (y - 1) * m_boardW; }
+
     // Resetting a LineData object
     inline void resetLineData(LineData& lineData) const;
     // Telling the line is dead
     inline bool lineIsDead(const LineData& lineData) const;
 
     // Logging stuff
-    inline void log(const std::string& str);
+    inline void log(const std::string& str){
+        if(!m_enableLog)
+            return;
+        m_fileStream << str << '\n';
+        std::cout << str << std::endl;
+    }
     // Logging text + template
     template<typename T>
     inline void log(const std::string& str, const T& var){
-        if(m_enableLog) m_fileStream << str << ' ' << var << '\n';
+        if(!m_enableLog)
+            return;
+        m_fileStream << str << ' ' << var << '\n';
+        std::cout << str << ' ' << var << std::endl;
     }
 
     // Rounds counter
@@ -194,8 +318,29 @@ private:
     int m_errCnt{ 0 };
 
     // Dimensions of the board
-    std::size_t m_boardW{ 0 };
-    std::size_t m_boardH{ 0 };
+    const size_t m_boardW;
+    const size_t m_boardH;
+    const size_t m_fields;
+
+    // Size of a line required to win
+    const size_t m_winLineSize{ 5 };
+    // Base of the evaluation code (count of possible directions)
+    const size_t m_evalBase{ 4 };
+    // Size of a complete line (a sequence can start or end at the point we're looking at)
+    const size_t m_evalSize{ 2 * m_winLineSize - 1 };
+
+    // Evaluation value
+    double m_evalRslt{ 0. };
+    double m_evalMax { 4. };
+    std::vector<double> m_evalsW;
+    std::vector<double> m_evalsL;
+
+    const size_t m_imgZoom { 25u };
+    JLImage m_imgEval;
+    JLImage m_imgChoice;
+    void makeEvalImgs(const Position& pos);
+    void setPixel(JLImage& image, std::size_t x, std::size_t y, const JLImage::ColorHSV& c);
+    void setPixelFixVal(JLImage& image, std::size_t x, std::size_t y, uint16_t hue, uint8_t saturation);
 
     // Char used to read (more performant)
     Piece m_in;
@@ -230,7 +375,7 @@ private:
     bool (PlayerJoseph::*m_trackFunc)(std::size_t inX, std::size_t inY, Position& pos){ nullptr };
 
     // Logging
-    //bool m_enableLog{true};
+    bool m_enableImg{false};
     bool m_enableLog{false};
     std::ofstream m_fileStream;
 };
