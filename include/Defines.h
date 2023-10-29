@@ -11,8 +11,9 @@ enum PlayerId{
     player_human,
     player_random,
     player_marco,
-    player_joseph,
+    player_joseph1,
     player_defensive,
+    player_joseph2,
     // Max count
     player_max
 };
