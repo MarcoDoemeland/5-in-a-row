@@ -3,109 +3,18 @@
 
 // Custom classes and defines
 #include "Defines.h"
+#include "Players/JosephUtils.h"
 #include "Players/PlayerBase.h"
 #include "Board.h"
 
 #include <fstream>
 
-namespace FIAR{
-
-class JLImage{
-public:
-    // Color
-    struct ColorHSV{
-        uint16_t hue      { 0u };
-        uint8_t saturation{ 0u };
-        uint8_t value     { 0u };
-    };
-    struct ColorRGB{
-        uint8_t red  { 0u };
-        uint8_t green{ 0u };
-        uint8_t blue { 0u };
-
-        static ColorRGB fromHSV(const ColorHSV& in);
-    };
-
-    // Constructors
-    JLImage(std::size_t w, std::size_t h);
-    JLImage(const JLImage& ref) = delete;
-    JLImage() = delete;
-
-    // Destructor
-    ~JLImage();
-
-    // Resetting the image
-    void reset(uint8_t r, uint8_t g, uint8_t b);
-    void reset(const ColorRGB& color);
-    void reset();
-    // Setting a pixel value
-    void setPixel(std::size_t x, std::size_t y, uint8_t r, uint8_t g, uint8_t b);
-    void setPixel(std::size_t x, std::size_t y, const ColorRGB& color);
-    // Returning a pixel value
-    ColorRGB getPixel(std::size_t x, std::size_t y);
-    // Saving the image
-    void save(const std::string& name);
-    // << operator overload
-    friend std::ostream& operator<<(std::ostream& stream, const JLImage& image);
-
-private:
-    // Dimensions
-    std::size_t m_w{ 0 };
-    std::size_t m_h{ 0 };
-    // Size of the header
-    static const std::int32_t s_gHeaderBytes{ 14 };
-    // Size of the image header
-    static const std::int32_t s_iHeaderBytes{ 40 };
-    // Size of a row
-    std::int32_t m_rowBytes{ 0 };
-    // Size of the data
-    std::int32_t m_dataBytes{ 0 };
-    // Size of the file
-    std::int32_t m_fileBytes{ 0 };
-
-    // Actual image
-    std::int8_t* m_image{ nullptr };
-
-    // General header:
-    // 0x0000	2 octets	le nombre magique correspondant à l'utilisation du fichier BMP
-    std::int16_t* m_magicNumber{ nullptr };
-    // BM - Windows 3.1x, 95, NT, etc.
-    // BA - OS/2 Bitmap Array
-    // CI - OS/2 Icône Couleur (Color Icon)
-    // CP - OS/2 Pointeur Couleur (Color Pointer)
-    // IC - OS/2 Icône (Icon)
-    // PT - OS/2 Pointeur (Pointer)
-    // 0x0002	4 octets	la taille du fichier BMP en octets
-    std::int32_t* m_fileSize{ nullptr };
-    // 0x0006	2 octets	réservé pour l'identifiant de l'application qui a créé le fichier
-    std::int16_t* m_id1{ nullptr };
-    // 0x0008	2 octets	réservé pour l'identifiant de l'application qui a créé le fichier
-    std::int16_t* m_id2{ nullptr };
-    // 0x000A	4 octets	l'offset (l'adresse de départ) du contenu du BMP
-    std::int32_t* m_imageOffset{ nullptr };
-
-    // Image header:
-    std::int32_t* m_iHeaderSize{ nullptr };
-    std::int32_t* m_imageW{ nullptr };
-    std::int32_t* m_imageH{ nullptr };
-    std::int16_t* m_colorPlanes{ nullptr };
-    std::int16_t* m_bitsPerPx{ nullptr };
-    std::int32_t* m_comprMethod{ nullptr };
-    std::int32_t* m_imageSize{ nullptr };
-    std::int32_t* m_horiReso{ nullptr };
-    std::int32_t* m_vertReso{ nullptr };
-    std::int32_t* m_colorCnt{ nullptr };
-    std::int32_t* m_impColorCnt{ nullptr };
-
-    // Data
-    std::uint8_t* m_data{ nullptr };
-
-    // Pointer for reading / writing pixels
-    std::uint8_t* m_pxRW{ nullptr };
-};
+namespace FIAR
+{
 
 // Dumm, duemmer, am duemmsten
-class PlayerJoseph final : public PlayerBase{
+class PlayerJoseph final : public PlayerBase
+{
 public:
     // Constructor
     PlayerJoseph(const Board* board, Piece piece);
@@ -339,17 +248,17 @@ private:
     JLImage m_imgEval;
     JLImage m_imgChoice;
     void makeEvalImgs(const Position& pos);
-    void setPixel(JLImage& image, std::size_t x, std::size_t y, const JLImage::ColorHSV& c);
-    void setPixelFixVal(JLImage& image, std::size_t x, std::size_t y, uint16_t hue, uint8_t saturation);
+    void setPixel(JLImage& image, size_t x, size_t y, const ColorHSV& c);
+    void setPixelFixVal(JLImage& image, size_t x, size_t y, uint16_t hue, uint8_t saturation);
 
     // Char used to read (more performant)
     Piece m_in;
     // Current direction inspected during the linear sequence search
     JoDir m_dir;
     // Size of the sequence
-    std::size_t m_seqSize;
+    size_t m_seqSize;
     // Count of default chars allowed in the sequence
-    std::size_t m_maxCount;
+    size_t m_maxCount;
 
     // Reference line status code
     LineStatus m_refStatus;
@@ -372,7 +281,7 @@ private:
     int (PlayerJoseph::*m_x2DDecFunc)(int) const{ nullptr };
     int (PlayerJoseph::*m_y2DDecFunc)(int) const{ nullptr };
     // Sequence searching function
-    bool (PlayerJoseph::*m_trackFunc)(std::size_t inX, std::size_t inY, Position& pos){ nullptr };
+    bool (PlayerJoseph::*m_trackFunc)(size_t inX, size_t inY, Position& pos){ nullptr };
 
     // Logging
     bool m_enableImg{false};
