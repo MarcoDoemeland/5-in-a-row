@@ -150,7 +150,7 @@ void Game::definePlayer(const std::string& text, PlayerBase*& player, Piece piec
         player_human,
         player_random,
         player_marco,
-        player_joseph1,
+        player_joseph,
         player_defensive,
         player_joseph2 };
 
@@ -177,14 +177,14 @@ void Game::definePlayer(const std::string& text, PlayerBase*& player, Piece piec
     case player_marco:
         player = new PlayerMarco(&m_board, piece);
         break;
-    case player_joseph1:
-        player = new PlayerJoseph(&m_board, piece);
+    case player_joseph:
+        player = new PlayerJosephOG(&m_board, piece);
         break;
     case player_defensive:
         player = new PlayerDefensive(&m_board, piece);
         break;
     case player_joseph2:
-        player = new PlayerJoseph(&m_board, piece);
+        player = new PlayerJosephPlus(&m_board, piece);
         break;
     // Stupid, but allows getting the warning away.
     case player_max:

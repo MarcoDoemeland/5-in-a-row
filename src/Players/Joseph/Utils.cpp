@@ -1,9 +1,13 @@
-#include "JosephUtils.h"
+#include <Players/Joseph/Utils.h>
 
 #include <fstream>
+#include <math.h>
 #include <iostream>
 
 namespace FIAR
+{
+
+namespace joseph
 {
 
 ColorRGB ColorRGB::fromHSV(const ColorHSV &in)
@@ -38,7 +42,7 @@ ColorRGB ColorRGB::fromHSV(const ColorHSV &in)
 }
 
 // Constructor
-JLImage::JLImage(size_t w, size_t h)
+Image::Image(size_t w, size_t h)
     : m_w{ w }
     , m_h{ h }{
     if(m_w && m_h){
@@ -108,12 +112,12 @@ JLImage::JLImage(size_t w, size_t h)
     }
 }
 // Destructor
-JLImage::~JLImage(){
+Image::~Image(){
     delete[] m_image;
 }
 
 // Resetting the image
-void JLImage::reset(uint8_t r, uint8_t g, uint8_t b){
+void Image::reset(uint8_t r, uint8_t g, uint8_t b){
     // Setting all data to 0
     if(m_image){
         for(size_t y{ 0u }; y < m_h; ++y){
@@ -128,14 +132,14 @@ void JLImage::reset(uint8_t r, uint8_t g, uint8_t b){
         }
     }
 }
-void JLImage::reset(const ColorRGB& color){
+void Image::reset(const ColorRGB& color){
     reset(color.red, color.green, color.blue);
 }
-void JLImage::reset(){
+void Image::reset(){
     reset(0u, 0u, 0u);
 }
 // Setting a pixel value
-void JLImage::setPixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b){
+void Image::setPixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b){
     // Invalid coordinates
     if(x > m_w || y > m_h) return;
     // Getting the address
@@ -145,11 +149,11 @@ void JLImage::setPixel(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b){
     *(m_pxRW + 1) = g;
     *(m_pxRW + 0) = b;
 }
-void JLImage::setPixel(size_t x, size_t y, const ColorRGB& color){
+void Image::setPixel(size_t x, size_t y, const ColorRGB& color){
     setPixel(x, y, color.red, color.green, color.blue);
 }
 // Returning a pixel value
-ColorRGB JLImage::getPixel(size_t x, size_t y){
+ColorRGB Image::getPixel(size_t x, size_t y){
     // Invalid coordinates
     if(x > m_w || y > m_h) return { 0u, 0u, 0u };
     // Getting the address
@@ -158,7 +162,7 @@ ColorRGB JLImage::getPixel(size_t x, size_t y){
     return { *(m_pxRW + 2), *(m_pxRW + 1), *(m_pxRW + 0) };
 }
 // Saving the image
-void JLImage::save(const std::string& name){
+void Image::save(const std::string& name){
     if(name.size() <= 0)
         return;
     std::ofstream stream(name + ".bmp", std::ofstream::binary);
@@ -167,7 +171,7 @@ void JLImage::save(const std::string& name){
     stream.close();
 }
 // << operator overload
-std::ostream& operator<<(std::ostream& stream, const JLImage& image){
+std::ostream& operator<<(std::ostream& stream, const Image& image){
     if(image.m_image){
         for(int i{ 0 }; i < image.m_fileBytes; ++i)
             stream << image.m_image[i];
@@ -196,5 +200,7 @@ std::ostream& operator<<(std::ostream& stream, const TimeEvaluation& eval)
     stream << eval.ElapsedUs() << " us";
     return stream;
 }
+
+} // End namespace joseph
 
 } // End namespace FIAR

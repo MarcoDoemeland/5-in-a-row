@@ -1,19 +1,34 @@
 // -----------------------------------------------------------------------------
-// 5iar -- JosephUtils.h
+// 5iar -- Utils.h
 // -----------------------------------------------------------------------------
 //
 // ...
 //
 
-#ifndef __FIAR_JOSEPHUTILS_H__
-#define __FIAR_JOSEPHUTILS_H__
+#ifndef __FIAR_PLAYERS_JOSEPH_UTILS_H__
+#define __FIAR_PLAYERS_JOSEPH_UTILS_H__
 
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <stdint.h>
 #include <string>
 
 namespace FIAR
 {
+
+namespace joseph
+{
+
+// Directions
+enum JDirections{
+    dir_x,// Along x
+    dir_d,// Diagonal
+    dir_y,// Along y
+    dir_a,// Antidiagonal
+    dir_count,
+    dir_nodir// Placed after count, since it is not a direction
+};
 
 struct ColorHSV
 {
@@ -31,16 +46,16 @@ struct ColorRGB
     static ColorRGB fromHSV(const ColorHSV& in);
 };
 
-class JLImage
+class Image
 {
 public:
     // Constructors
-    JLImage(size_t w, size_t h);
-    JLImage(const JLImage& ref) = delete;
-    JLImage() = delete;
+    Image(size_t w, size_t h);
+    Image(const Image& ref) = delete;
+    Image() = delete;
 
     // Destructor
-    ~JLImage();
+    ~Image();
 
     // Resetting the image
     void reset(uint8_t r, uint8_t g, uint8_t b);
@@ -54,7 +69,7 @@ public:
     // Saving the image
     void save(const std::string& name);
     // << operator overload
-    friend std::ostream& operator<<(std::ostream& stream, const JLImage& image);
+    friend std::ostream& operator<<(std::ostream& stream, const Image& image);
 
 private:
     // Dimensions
@@ -126,6 +141,42 @@ private:
 
 std::ostream& operator<<(std::ostream& stream, const TimeEvaluation& eval);
 
-}
+class Logger
+{
+public:
+    // Constructor: the Logger will take the filename only if logging is active
+    Logger(const std::string& filename, bool activate = false)
+        : m_logEnabled{ activate }
+    {
+        if (m_logEnabled)
+            m_fileStream = std::ofstream(filename);
+    }
 
-#endif // JOSEPHUTILS_H
+    // Logging stuff
+    inline void log(const std::string& str){
+        if(!m_logEnabled)
+            return;
+        m_fileStream << str << '\n';
+        std::cout << str << std::endl;
+    }
+
+    // Logging text + template
+    template<typename T>
+    inline void log(const std::string& str, const T& var){
+        if(!m_logEnabled)
+            return;
+        m_fileStream << str << ' ' << var << '\n';
+        std::cout << str << ' ' << var << std::endl;
+    }
+
+private:
+    // Logging variables
+    bool m_logEnabled;
+    std::ofstream m_fileStream;
+};
+
+} // End namespace joseph
+
+} // End namespace FIAR
+
+#endif // __FIAR_PLAYERS_JOSEPH_UTILS_H__
