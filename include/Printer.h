@@ -8,44 +8,28 @@
 #ifndef __FIAR_PRINTER_H__
 #define __FIAR_PRINTER_H__
 
-#include <iostream>
-#include <stdio.h>
 #include <vector>
 #include <string>
 
 namespace FIAR
 {
-	class Printer
-	{
-		public:
-			// constructor
-			Printer() {};
 
-			// destructor
-			//~ ~Printer( void );
+class Printer
+{
+public:
+    // constructor
+    Printer() {}
 
-			// ...
-			void print_array( std::vector<std::vector<char>> const &array );
+    void print_array(const std::vector<std::vector<char>>& array);
 
-			//~ // bla
-			//~ double num;
+private:
+    void print_array_top_row(size_t size);
+    void print_array_bottom_row(size_t size);
+    void print_array_empty_row(size_t size);
+    void print_array_filled_row(size_t pos, const std::vector<char>& row);
+    void print_array_number_row(size_t size);
+};
 
-
-		private:
-
-			void print_array_top_row( int size );
-			void print_array_bottom_row( int size );
-			void print_array_empty_row( int size );
-			void print_array_filled_row(	int pos,
-											std::vector<char> const &row
-										);
-			void print_array_number_row( int size );
-			//~ void print_array_top_row   ( unsigned int const size );
-			//~ void print_array_bottom_row( unsigned int const size );
-			//~ void print_array_empty_row ( unsigned int const size );
-			//~ void print_array_filled_row( std::vector<char> const row );
-	};
 }
 
-
-#endif
+#endif // __FIAR_PRINTER_H__

@@ -14,24 +14,8 @@
 #include "Players/PlayerMarco.h"
 #include "Players/PlayerRandom.h"
 
-namespace FIAR{
-
-	//~ Game::Game( FIAR::Board _board )
-		//~ : board (_board)
-	//~ {
-		//~ board = _board;
-		//~ std::cout << BOARD_SIZE_X << '\n';
-	//~ }
-//~ Game::Game(Board* board, PlayerBase* player1, PlayerBase* player2, Printer* printer)
-//~     : m_boardPtr{ board }
-//~     , m_player1Ptr{ player1 }
-//~     , m_player2Ptr{ player2 }
-//~     , m_printerPtr{ printer }{
-//~     //~ std::cout << "huhuh" << '\n';
-//~
-//~     definePlayer1();
-//~     definePlayer2();
-//~ }
+namespace FIAR
+{
 
 // Constructor
 Game::Game()
@@ -83,41 +67,8 @@ void Game::start(){
     // No winner, pretty sad
     if(cycleCount >= m_board.area())  std::cout << "Nobody won.\n";
 
-
-
-    //~ std::cout << board.add_symbol( 3, 10, 'x' ) << std::endl;;
-    //~ std::cout << m_board.add_symbol( 4, 5, 'x' ) << '\n';
-    //~ std::cout << m_board.add_symbol( 5, 4, 'x' ) << '\n';
-    //~ std::cout << m_board.add_symbol( 6, 3, 'x' ) << '\n';
-    //~ std::cout << m_board.add_symbol( 7, 2, 'x' ) << '\n';
-    //~ std::cout << m_board.add_symbol( 8, 1, 'x' ) << '\n';
-    //~ std::cout << m_board.add_symbol( 4, 10, 'o' ) << '\n';
-    //~ std::cout << board << "\n";
-
-    //~ return 0;
-    //~ std::cout << board.add_symbol( 3, 5, 'x' ) << std::endl;
-
-    //~ if (m_board.add_symbol( 3, 5, 'x' ))
-    //~ {
-    //~     std::cout << "huhuhu" << std::endl;
-    //~ }
-
-
-    //~ auto array { board.get_array() };
-
-    //~ array[0][0] = 'x';
-    //~ array[4][7] = 'x';
-    //~ array[1][1] = 'x';
-
-    //Printer printer;
-    //printer.print_array( m_board.get_array() );
     // Printing the board
     std::cout << m_board << '\n';
-
-
-    //~ for (auto i: m_board.find_winning_sequences() ){
-    //~     std::cout << i.m_x << ' ' << i.m_y << ' ' << i.m_dir << ' ' << i.m_symbol << std::endl;
-    //~ }
 }
 // A winner was found, returning a pointer
 PlayerBase* Game::winnerFound() const{
@@ -212,4 +163,4 @@ void Game::swapCurrentPlayer(){
     else m_currentPlayer = m_player1;
 }
 
-}// End namespace FIAR
+} // End namespace FIAR
